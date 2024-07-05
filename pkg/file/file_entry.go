@@ -1,5 +1,5 @@
 package ego
 
-func Echo() {
-	println("I am File Module")
+func EchoFile() {
+	println("I am File 2 Module")
 }
