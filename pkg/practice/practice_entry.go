@@ -1,5 +1,5 @@
-package practice
+package ego
 
 func Echo() {
-	println("I am Practice New2 Module")
+	println("I am Practice New3 Module")
 }
