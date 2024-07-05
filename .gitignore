@@ -1,22 +1,104 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# GoLand IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+*.iws.idea
+*.iml.idea
+
+# GoLand specific files
+*.DS_Store
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# GoLand plugins
+plugins/
+
+# GoLand caches and indexes
+*.log
+!/.gitignore
+.idea/caches/
+.idea/dataSources/
+.idea/dataSources.ids
+.idea/dataSources.xml
+.idea/dataSources.local.xml
+.idea/libraries/
+.idea/modules.xml
+
+# GoLand built-in tasks and configurations
+.idea/inspectionProfiles/
+
+# GoLand workspace settings
+.idea/workspace.xml
+
+# GoLand task definitions
+.idea/tasks.xml
+
+# GoLand code style settings
+.idea/codeStyleSettings.xml
+
+# GoLand copyright settings
+.idea/copyright/
+.idea/copyright.xml
+
+# GoLand JSLinter settings
+.idea/jsLinter/
+.idea/jscs.json
+.idea/jscs配对.json
+.idea/eslintConfig/
+
+# GoLand files for a specific run configuration
+.idea/runConfigurations/
+
+# GoLand coverage task results
+*.coverage
+
+# GoLand execution logs
+*.log
+
+# GoLand crash logs
+hs_err_pid*
+
+# GoLand profiler
+*.cpu
+*.Heap
+
+# GoLand profiler heap dumps
+*.hprof
+
+# IntelliJ
+*.ipr
+
+# Gradle cache
+.gradle/
+build/
+
+# OS generated files #
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# go files
+*.go
+!*_test.go
+!vendor/**/*.go
+
+# Compiled binary files
 *.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-
-# Test binary, built with `go test -c`
-*.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Test binary files
+*.test
 
-# Go workspace file
-go.work
-go.work.sum
+# Other IDEs
+.vscode/
