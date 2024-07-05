@@ -1,3 +1,3 @@
 # easy-go
 go lang toolkit
-abc
+add 2 modules
