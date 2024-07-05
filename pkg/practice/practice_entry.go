@@ -1,5 +1,5 @@
-package ego
+package practice
 
-func Echo() {
-	println("I am Practice New4 Module")
+func PracticeInside() {
+	println("I am Practice Inside")
 }

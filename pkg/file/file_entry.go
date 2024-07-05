@@ -1,5 +1,10 @@
-package ego
+package file
 
-func EchoFile() {
-	println("I am File 2 Module")
+func FileInside() {
+	println("I am File Inside")
+}
+
+type MyFile struct {
+	Name string
+	Size int64
 }
