@@ -23,7 +23,6 @@ __pycache__/
 plugins/
 
 # GoLand caches and indexes
-*.log
 !/.gitignore
 .idea/caches/
 .idea/dataSources/
@@ -61,9 +60,6 @@ plugins/
 # GoLand coverage task results
 *.coverage
 
-# GoLand execution logs
-*.log
-
 # GoLand crash logs
 hs_err_pid*
 
@@ -73,9 +69,6 @@ hs_err_pid*
 
 # GoLand profiler heap dumps
 *.hprof
-
-# IntelliJ
-*.ipr
 
 # Gradle cache
 .gradle/
