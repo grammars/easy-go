@@ -2,40 +2,68 @@ package main
 
 import (
 	"fmt"
-	"net"
+	"github.com/gorilla/websocket"
+	"log"
+	"net/url"
+	"os"
+	"os/signal"
 	"time"
 )
 
 func main() {
 	fmt.Println("Hello Gopher!")
-	conn, err := net.Dial("tcp", "localhost:1888")
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+
+	u := url.URL{Scheme: "wss", Host: "dev.ydwlgame.com:443", Path: "/wocao"}
+	log.Printf("connecting to %s", u.String())
+
+	c, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
-		fmt.Printf("创建连接失败，错误:%v\n", err)
-		return
+		log.Fatal("dial:", err)
 	}
-	defer func(conn net.Conn) {
-		err := conn.Close()
-		if err != nil {
-			fmt.Printf("连接关闭失败，错误:%v\n\n", err)
-		}
-	}(conn)
-	fmt.Printf("连接服务端成功:%v\n", conn.RemoteAddr())
+	defer c.Close()
+
+	done := make(chan struct{})
 
 	go func() {
-		_, err := conn.Write([]byte("hello world"))
-		if err != nil {
-			fmt.Printf("发送消息失败:%v\n", err)
-			return
+		defer close(done)
+		for {
+			_, message, err := c.ReadMessage()
+			if err != nil {
+				log.Println("read:", err)
+				return
+			}
+			log.Printf("recv: %s", message)
 		}
-		time.Sleep(10 * time.Millisecond)
-		var buf [1024]byte
-		n, err := conn.Read(buf[:])
-		if err != nil {
-			fmt.Printf("read failed, err:%v\n", err)
-			return
-		}
-		fmt.Println("收到服务端回复,", string(buf[:n]))
 	}()
 
-	time.Sleep(10 * time.Second)
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-done:
+			return
+		case t := <-ticker.C:
+			err := c.WriteMessage(websocket.BinaryMessage, []byte(t.String()))
+			if err != nil {
+				log.Println("write:", err)
+				return
+			}
+		case <-interrupt:
+			log.Println("interrupt")
+			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			if err != nil {
+				log.Println("write close:", err)
+				return
+			}
+			select {
+			case <-done:
+			case <-time.After(time.Second):
+			}
+			return
+		}
+	}
 }
