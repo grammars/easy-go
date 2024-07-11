@@ -14,35 +14,43 @@ func CloseConn(conn net.Conn) {
 }
 
 type Monitor struct {
-	BytesRead  chan int
-	BytesWrite chan int
-	ValidNum   chan int
-	InvalidNum chan int
+	BytesRead     chan int
+	BytesWrite    chan int
+	AcceptFailNum chan int
+	ValidNum      chan int
+	InvalidNum    chan int
 }
 
 func (m *Monitor) Start() {
 	m.BytesRead = make(chan int)
 	m.BytesWrite = make(chan int)
+	m.AcceptFailNum = make(chan int)
 	m.ValidNum = make(chan int)
 	m.InvalidNum = make(chan int)
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	nTick := 0
-	sumBytesRead := 0
-	sumBytesWrite := 0
+	var sumBytesRead int64 = 0
+	var sumBytesWrite int64 = 0
 	sumReadTimes := 0
 	sumWriteTimes := 0
+	sumAcceptFail := 0
 	sumValid := 0
 	sumInvalid := 0
+	var lastBytesRead int64 = 0
+	var lastBytesWrite int64 = 0
 	for {
 		select {
 		case num := <-m.BytesRead:
-			sumBytesRead += num
+			sumBytesRead += int64(num)
 			sumReadTimes++
 			break
 		case num := <-m.BytesWrite:
-			sumBytesWrite += num
+			sumBytesWrite += int64(num)
 			sumWriteTimes++
+			break
+		case num := <-m.AcceptFailNum:
+			sumAcceptFail += num
 			break
 		case <-m.ValidNum:
 			sumValid++
@@ -53,10 +61,27 @@ func (m *Monitor) Start() {
 		case <-ticker.C:
 			nTick++
 			curTime := time.Now()
-			fmt.Printf("%s 嘀嗒 %d 收到字节%d 次数%d 写出字节%d 次数%d 有效数=%d 失效数=%d \n",
-				curTime.Format("2006-01-02 15:04:05"),
-				nTick, sumBytesRead, sumReadTimes, sumBytesWrite, sumWriteTimes, sumValid, sumInvalid)
+			deltaBytesRead := sumBytesRead - lastBytesRead
+			deltaBytesWrite := sumBytesWrite - lastBytesWrite
+			fmt.Printf("%s 嘀嗒 %d 收到字节%d 次数%d 速度%s 写出字节%d 次数%d 速度%s 有效数=%d 失效数=%d accept失败数=%d \n",
+				curTime.Format(time.DateTime), nTick,
+				sumBytesRead, sumReadTimes, speed(deltaBytesRead),
+				sumBytesWrite, sumWriteTimes, speed(deltaBytesWrite),
+				sumValid, sumInvalid, sumAcceptFail)
+			lastBytesRead = sumBytesRead
+			lastBytesWrite = sumBytesWrite
 			break
 		}
 	}
+}
+
+func speed(bs int64) string {
+	if bs < 1024 {
+		return fmt.Sprintf("%dB", bs)
+	} else if bs < 1024*1024 {
+		return fmt.Sprintf("%.2fKB", float64(bs)/1024)
+	} else if bs < 1024*1024*1024 {
+		return fmt.Sprintf("%.2fMB", float64(bs)/1024/1024)
+	}
+	return fmt.Sprintf("%.2fGB", float64(bs)/1024/1024/1024)
 }

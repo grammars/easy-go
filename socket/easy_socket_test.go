@@ -16,9 +16,10 @@ func TestRawClient(t *testing.T) {
 	fmt.Println("TestRawClient")
 	monitor := &Monitor{}
 	go monitor.Start()
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 5000; i++ {
 		cli := &RawClient{Addr: "localhost", Port: 6677, Name: fmt.Sprintf("好家伙%d", i), Monitor: monitor}
 		go cli.Start()
+		time.Sleep(10 * time.Millisecond)
 	}
-	time.Sleep(20 * time.Second)
+	time.Sleep(600 * time.Second)
 }

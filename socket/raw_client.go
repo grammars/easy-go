@@ -45,7 +45,7 @@ func (cli *RawClient) Start() {
 		if cli.Monitor != nil {
 			cli.Monitor.BytesWrite <- nWrite
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		var buf [1024]byte
 		n, err := conn.Read(buf[:])
 		if err != nil {
