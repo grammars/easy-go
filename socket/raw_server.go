@@ -8,14 +8,16 @@ import (
 )
 
 type RawServer struct {
-	Port int
+	Port        int
+	PrintDetail bool
+	Monitor     *Monitor
 }
 
 func (srv *RawServer) Start() {
 	fmt.Println("开始启动SocketServer")
 
-	monitor := Monitor{}
-	go monitor.Start()
+	srv.Monitor = &Monitor{}
+	go srv.Monitor.Start()
 
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", srv.Port))
 	if err != nil {
@@ -30,29 +32,39 @@ func (srv *RawServer) Start() {
 			fmt.Printf("接收连接失败:%v\n", err)
 			continue
 		}
+		srv.Monitor.ValidNum <- 1
 		fmt.Printf("有一个客户端连接我成功了，来自:%v\n", conn.RemoteAddr())
-		go ReadWriteAsServer(conn, &monitor)
+		go ReadWriteAsServer(conn, srv)
 	}
 }
 
-func ReadWriteAsServer(conn net.Conn, monitor *Monitor) {
+func ReadWriteAsServer(conn net.Conn, srv *RawServer) {
+	monitor := srv.Monitor
 	defer CloseConn(conn)
 	reader := bufio.NewReader(conn)
 	for {
 		var buf [1024]byte
 		n, err := reader.Read(buf[:])
 		if err != nil && err != io.EOF {
-			//fmt.Printf("读取失败,err:%v\n", err)
+			if srv.PrintDetail {
+				fmt.Printf("读取失败,err:%v\n", err)
+			}
 			monitor.InvalidNum <- 1
 			break
 		}
 		monitor.BytesRead <- n
 		got := string(buf[:n])
-		fmt.Println("接收到的数据: ", got)
+		if srv.PrintDetail {
+			fmt.Println("接收到的数据: ", got)
+		}
 		nWrite, err := conn.Write([]byte("收到了：" + got))
 		if err != nil {
+			fmt.Printf("写给客户端失败：%s\n", err.Error())
 			return
 		}
-		fmt.Println("回复:nWrite=", nWrite)
+		monitor.BytesWrite <- nWrite
+		if srv.PrintDetail {
+			fmt.Println("回复:nWrite=", nWrite)
+		}
 	}
 }

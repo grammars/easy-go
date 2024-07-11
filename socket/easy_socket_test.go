@@ -3,6 +3,7 @@ package socket
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 func TestRawServer(t *testing.T) {
@@ -13,6 +14,11 @@ func TestRawServer(t *testing.T) {
 
 func TestRawClient(t *testing.T) {
 	fmt.Println("TestRawClient")
-	cli := &RawClient{Addr: "localhost", Port: 6677, Name: "好家伙"}
-	cli.Start()
+	monitor := &Monitor{}
+	go monitor.Start()
+	for i := 0; i < 3; i++ {
+		cli := &RawClient{Addr: "localhost", Port: 6677, Name: fmt.Sprintf("好家伙%d", i), Monitor: monitor}
+		go cli.Start()
+	}
+	time.Sleep(20 * time.Second)
 }
