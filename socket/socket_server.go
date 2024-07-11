@@ -1,4 +1,4 @@
-package msock
+package socket
 
 import (
 	"bufio"

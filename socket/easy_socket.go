@@ -1,15 +1,10 @@
-package ego
+package socket
 
 import (
 	"fmt"
-	msock "github.com/grammars/easy-go/pkg/socket"
 	"net"
 	"time"
 )
-
-func EchoSocket() {
-	println("EasySocket-V1")
-}
 
 type SocketServer struct {
 	Port int
@@ -18,7 +13,7 @@ type SocketServer struct {
 func (srv *SocketServer) Start() {
 	fmt.Println("开始启动SocketServer")
 
-	monitor := msock.Monitor{}
+	monitor := Monitor{}
 	go monitor.Start()
 
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", srv.Port))
@@ -27,7 +22,7 @@ func (srv *SocketServer) Start() {
 		panic(err)
 	}
 	var conn net.Conn
-	defer msock.CloseConn(conn)
+	defer CloseConn(conn)
 	for {
 		conn, err := listen.Accept()
 		if err != nil {
@@ -35,7 +30,7 @@ func (srv *SocketServer) Start() {
 			continue
 		}
 		fmt.Printf("有一个客户端连接我成功了，来自:%v\n", conn.RemoteAddr())
-		go msock.ReadWriteAsServer(conn, &monitor)
+		go ReadWriteAsServer(conn, &monitor)
 	}
 }
 
