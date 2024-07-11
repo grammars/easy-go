@@ -6,13 +6,11 @@ import (
 	"time"
 )
 
-type Utils struct{}
-
-func (u *Utils) CreateRawServer(port int) *RawServer {
+func CreateRawServer(port int) *RawServer {
 	return &RawServer{Port: port}
 }
 
-func (u *Utils) CreateRawClient(addr string, port int, name string) *RawClient {
+func CreateRawClient(addr string, port int, name string) *RawClient {
 	return &RawClient{Addr: addr, Port: port, Name: name}
 }
 

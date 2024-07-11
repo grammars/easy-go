@@ -1,13 +1,7 @@
 package ego
 
-import (
-	"github.com/grammars/easy-go/file"
-	"github.com/grammars/easy-go/practice"
-	"github.com/grammars/easy-go/socket"
-)
-
 func Version() string {
-	return "0.0.9"
+	return "0.0.10"
 }
 
 func Return[T any](boolExpression bool, trueReturnValue, falseReturnValue T) T {
@@ -25,7 +19,3 @@ func ReturnByFunc[T any](boolExpression bool, trueFuncForReturnValue, falseFuncF
 		return falseFuncForReturnValue()
 	}
 }
-
-var File *file.Utils = &file.Utils{}
-var Practice *practice.Utils = &practice.Utils{}
-var Socket *socket.Utils = &socket.Utils{}
