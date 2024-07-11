@@ -59,13 +59,16 @@ func (w *ComboWriter) Write(p []byte) (n int, err error) {
 	return w.fileWriter.Write(p)
 }
 
+func SetupDefault() {
+	CreateOption().Setup()
+}
+
 func CreateOption() *Option {
-	return &Option{ConsoleEnabled: true, FileEnabled: false, JsonMode: true, LogLevel: slog.LevelInfo,
+	return &Option{ConsoleEnabled: true, FileEnabled: true, JsonMode: true, LogLevel: slog.LevelInfo,
 		MaxSize: 2, MaxBackups: 3, MaxAge: 7, LocalTime: true, Compress: false}
 }
 
 func (option *Option) Setup() {
-	logLevel := slog.LevelDebug
 	if option.Filename == "" {
 		option.Filename = filepath.Join(file.GetExeDir(), ".logs", "app.log")
 	} else {
@@ -96,7 +99,7 @@ func (option *Option) Setup() {
 		writer = consoleWriter
 	}
 
-	opts := &slog.HandlerOptions{Level: logLevel}
+	opts := &slog.HandlerOptions{Level: option.LogLevel}
 	var logger *slog.Logger
 	if option.JsonMode {
 		logger = slog.New(slog.NewJSONHandler(writer, opts))
