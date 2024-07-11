@@ -1,3 +1,5 @@
 # easy-go
 go lang toolkit
-add 2 modules
+
+## 依赖
+- go get -u gopkg.in/natefinch/lumberjack.v2
