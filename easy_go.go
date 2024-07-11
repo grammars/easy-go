@@ -1,6 +1,14 @@
 package ego
 
-import "github.com/grammars/easy-go/socket"
+import (
+	"github.com/grammars/easy-go/file"
+	"github.com/grammars/easy-go/practice"
+	"github.com/grammars/easy-go/socket"
+)
+
+func Version() string {
+	return "0.0.9"
+}
 
 func Return[T any](boolExpression bool, trueReturnValue, falseReturnValue T) T {
 	if boolExpression {
@@ -18,10 +26,6 @@ func ReturnByFunc[T any](boolExpression bool, trueFuncForReturnValue, falseFuncF
 	}
 }
 
-func CreateSocketServer(port int) *socket.SocketServer {
-	return &socket.SocketServer{Port: port}
-}
-
-func CreateSocketClient(addr string, port int, name string) *socket.SocketClient {
-	return &socket.SocketClient{Addr: addr, Port: port, Name: name}
-}
+var File *file.Utils = &file.Utils{}
+var Practice *practice.Utils = &practice.Utils{}
+var Socket *socket.Utils = &socket.Utils{}

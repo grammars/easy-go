@@ -6,11 +6,21 @@ import (
 	"time"
 )
 
-type SocketServer struct {
+type Utils struct{}
+
+func (u *Utils) CreateRawServer(port int) *RawServer {
+	return &RawServer{Port: port}
+}
+
+func (u *Utils) CreateRawClient(addr string, port int, name string) *RawClient {
+	return &RawClient{Addr: addr, Port: port, Name: name}
+}
+
+type RawServer struct {
 	Port int
 }
 
-func (srv *SocketServer) Start() {
+func (srv *RawServer) Start() {
 	fmt.Println("开始启动SocketServer")
 
 	monitor := Monitor{}
@@ -34,14 +44,14 @@ func (srv *SocketServer) Start() {
 	}
 }
 
-type SocketClient struct {
+type RawClient struct {
 	Addr string
 	Port int
 	Name string
 }
 
-func (cli *SocketClient) Start() {
-	fmt.Printf("SocketClient %s Start!\n", cli.Name)
+func (cli *RawClient) Start() {
+	fmt.Printf("RawClient %s Start!\n", cli.Name)
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", cli.Addr, cli.Port))
 	if err != nil {
 		fmt.Printf("[%s]创建连接失败，错误:%v\n", cli.Name, err)

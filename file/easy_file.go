@@ -9,26 +9,28 @@ import (
 	"path/filepath"
 )
 
-var curExeDir string
+type Utils struct {
+	curExeDir string
+}
 
 // GetExeDir 获取当前可执行文件所在的目录
-func GetExeDir() string {
-	if curExeDir == "" {
+func (u *Utils) GetExeDir() string {
+	if u.curExeDir == "" {
 		exePath, err := os.Executable()
 		if err != nil {
 			panic("cannot get executable path: " + err.Error())
 		}
-		curExeDir = filepath.Dir(exePath)
+		u.curExeDir = filepath.Dir(exePath)
 	}
-	return curExeDir
+	return u.curExeDir
 }
 
 // GetPathRelExe 获取相对于可执行文件的绝对路径
-func GetPathRelExe(relPath string) string {
-	return filepath.Join(GetExeDir(), relPath)
+func (u *Utils) GetPathRelExe(relPath string) string {
+	return filepath.Join(u.GetExeDir(), relPath)
 }
 
-func Exists(path string) bool {
+func (u *Utils) Exists(path string) bool {
 	_, err := os.Stat(path)
 	if err != nil {
 		return os.IsExist(err)
@@ -36,7 +38,7 @@ func Exists(path string) bool {
 	return true
 }
 
-func Md5Hex(filePath string) (string, error) {
+func (u *Utils) Md5Hex(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err
