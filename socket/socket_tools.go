@@ -6,10 +6,15 @@ import (
 	"time"
 )
 
+var connCloseSum = 0
+
 func CloseConn(conn net.Conn) {
 	err := conn.Close()
 	if err != nil {
 		fmt.Printf("连接关闭失败，错误:%v\n\n", err)
+	} else {
+		connCloseSum++
+		fmt.Printf("成功关闭1个连接 (累计关闭%d)\n", connCloseSum)
 	}
 }
 
