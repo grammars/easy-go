@@ -19,6 +19,7 @@ type Monitor struct {
 	AcceptFailNum chan int
 	ValidNum      chan int
 	InvalidNum    chan int
+	IntervalMilli int
 }
 
 func (m *Monitor) Start() {
@@ -27,7 +28,10 @@ func (m *Monitor) Start() {
 	m.AcceptFailNum = make(chan int)
 	m.ValidNum = make(chan int)
 	m.InvalidNum = make(chan int)
-	ticker := time.NewTicker(time.Second)
+	if m.IntervalMilli == 0 {
+		m.IntervalMilli = 3000
+	}
+	ticker := time.NewTicker(time.Millisecond * time.Duration(m.IntervalMilli))
 	defer ticker.Stop()
 	nTick := 0
 	var sumBytesRead int64 = 0
@@ -37,6 +41,7 @@ func (m *Monitor) Start() {
 	sumAcceptFail := 0
 	sumValid := 0
 	sumInvalid := 0
+	var lastTickTime = time.Now().UnixMilli()
 	var lastBytesRead int64 = 0
 	var lastBytesWrite int64 = 0
 	for {
@@ -61,12 +66,14 @@ func (m *Monitor) Start() {
 		case <-ticker.C:
 			nTick++
 			curTime := time.Now()
+			deltaTime := curTime.UnixMilli() - lastTickTime
+			lastTickTime = time.Now().UnixMilli()
 			deltaBytesRead := sumBytesRead - lastBytesRead
 			deltaBytesWrite := sumBytesWrite - lastBytesWrite
 			fmt.Printf("%s 嘀嗒 %d 收到字节%d 次数%d 速度%s 写出字节%d 次数%d 速度%s 有效数=%d 失效数=%d accept失败数=%d \n",
 				curTime.Format(time.DateTime), nTick,
-				sumBytesRead, sumReadTimes, speed(deltaBytesRead),
-				sumBytesWrite, sumWriteTimes, speed(deltaBytesWrite),
+				sumBytesRead, sumReadTimes, speed(deltaBytesRead, deltaTime),
+				sumBytesWrite, sumWriteTimes, speed(deltaBytesWrite, deltaTime),
 				sumValid, sumInvalid, sumAcceptFail)
 			lastBytesRead = sumBytesRead
 			lastBytesWrite = sumBytesWrite
@@ -75,7 +82,11 @@ func (m *Monitor) Start() {
 	}
 }
 
-func speed(bs int64) string {
+func speed(bs, deltaTime int64) string {
+	if deltaTime <= 0 {
+		return "--"
+	}
+	bs = bs * 1000 / deltaTime
 	if bs < 1024 {
 		return fmt.Sprintf("%dB", bs)
 	} else if bs < 1024*1024 {

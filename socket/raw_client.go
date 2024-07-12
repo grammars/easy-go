@@ -7,7 +7,7 @@ import (
 )
 
 type RawClient struct {
-	Addr        string
+	Host        string
 	Port        int
 	Name        string
 	Monitor     *Monitor
@@ -18,7 +18,7 @@ func (cli *RawClient) Start() {
 	if cli.PrintDetail {
 		fmt.Printf("RawClient %s Start!\n", cli.Name)
 	}
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", cli.Addr, cli.Port))
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", cli.Host, cli.Port))
 	if err != nil {
 		fmt.Printf("[%s]创建连接失败，错误:%v\n", cli.Name, err)
 		return
