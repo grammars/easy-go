@@ -14,6 +14,6 @@ func TestRawServer(t *testing.T) {
 
 func TestRawClient(t *testing.T) {
 	fmt.Println("TestRawClient")
-	TestManyRawClient("localhost", 6677, 100)
-	time.Sleep(600 * time.Second)
+	TestManyRawClient("192.168.11.11", 6677, 100)
+	time.Sleep(1800 * time.Second)
 }
