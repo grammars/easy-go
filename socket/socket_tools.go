@@ -34,25 +34,19 @@ func (m *Monitor) Start() {
 	ticker := time.NewTicker(time.Millisecond * time.Duration(m.IntervalMilli))
 	defer ticker.Stop()
 	nTick := 0
-	var sumBytesRead int64 = 0
-	var sumBytesWrite int64 = 0
-	sumReadTimes := 0
-	sumWriteTimes := 0
+	var snBytesRead = &SumNum[int64]{}
+	var snBytesWrite = &SumNum[int64]{}
 	sumAcceptFail := 0
 	sumValid := 0
 	sumInvalid := 0
 	var lastTickTime = time.Now().UnixMilli()
-	var lastBytesRead int64 = 0
-	var lastBytesWrite int64 = 0
 	for {
 		select {
 		case num := <-m.BytesRead:
-			sumBytesRead += int64(num)
-			sumReadTimes++
+			snBytesRead.Add(int64(num))
 			break
 		case num := <-m.BytesWrite:
-			sumBytesWrite += int64(num)
-			sumWriteTimes++
+			snBytesWrite.Add(int64(num))
 			break
 		case num := <-m.AcceptFailNum:
 			sumAcceptFail += num
@@ -68,31 +62,51 @@ func (m *Monitor) Start() {
 			curTime := time.Now()
 			deltaTime := curTime.UnixMilli() - lastTickTime
 			lastTickTime = time.Now().UnixMilli()
-			deltaBytesRead := sumBytesRead - lastBytesRead
-			deltaBytesWrite := sumBytesWrite - lastBytesWrite
-			fmt.Printf("%s 嘀嗒 %d 收到字节%d 次数%d 速度%s 写出字节%d 次数%d 速度%s 有效数=%d 失效数=%d accept失败数=%d \n",
+			fmt.Printf("%s 嘀嗒 %d 读取字节%d 次数%d 速度%s %s 写出字节%d 次数%d 速度%s %s 有效数=%d 失效数=%d accept失败数=%d \n",
 				curTime.Format(time.DateTime), nTick,
-				sumBytesRead, sumReadTimes, speed(deltaBytesRead, deltaTime),
-				sumBytesWrite, sumWriteTimes, speed(deltaBytesWrite, deltaTime),
+				snBytesRead.Total, snBytesRead.Times, speed(snBytesRead.DeltaNum(), deltaTime, "B"), speed(int64(snBytesRead.DeltaTimes()), deltaTime, "条"),
+				snBytesWrite.Total, snBytesWrite.Times, speed(snBytesWrite.DeltaNum(), deltaTime, "B"), speed(int64(snBytesWrite.DeltaTimes()), deltaTime, "条"),
 				sumValid, sumInvalid, sumAcceptFail)
-			lastBytesRead = sumBytesRead
-			lastBytesWrite = sumBytesWrite
 			break
 		}
 	}
 }
 
-func speed(bs, deltaTime int64) string {
+func speed(bs int64, deltaTime int64, unit string) string {
 	if deltaTime <= 0 {
 		return "--"
 	}
 	bs = bs * 1000 / deltaTime
 	if bs < 1024 {
-		return fmt.Sprintf("%dB", bs)
+		return fmt.Sprintf("%d%s", bs, unit)
 	} else if bs < 1024*1024 {
-		return fmt.Sprintf("%.2fKB", float64(bs)/1024)
+		return fmt.Sprintf("%.2fK%s", float64(bs)/1024, unit)
 	} else if bs < 1024*1024*1024 {
-		return fmt.Sprintf("%.2fMB", float64(bs)/1024/1024)
+		return fmt.Sprintf("%.2fM%s", float64(bs)/1024/1024, unit)
 	}
-	return fmt.Sprintf("%.2fGB", float64(bs)/1024/1024/1024)
+	return fmt.Sprintf("%.2fG%s", float64(bs)/1024/1024/1024, unit)
+}
+
+type SumNum[T int | int64] struct {
+	Total     T
+	Times     int
+	LastNum   T
+	LastTimes int
+}
+
+func (sn *SumNum[T]) Add(num T) {
+	sn.Total += num
+	sn.Times++
+}
+
+func (sn *SumNum[T]) DeltaNum() T {
+	d := sn.Total - sn.LastNum
+	sn.LastNum = sn.Total
+	return d
+}
+
+func (sn *SumNum[T]) DeltaTimes() int {
+	d := sn.Times - sn.LastTimes
+	sn.LastTimes = sn.Times
+	return d
 }

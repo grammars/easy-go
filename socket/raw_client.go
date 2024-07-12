@@ -36,7 +36,7 @@ func (cli *RawClient) Start() {
 		fmt.Printf("[%s]连接服务端成功:%v\n", cli.Name, conn.RemoteAddr())
 	}
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 99999999; i++ {
 		nWrite, err := conn.Write([]byte(fmt.Sprintf("[%s]hello world(%d)", cli.Name, i)))
 		if err != nil {
 			fmt.Printf("发送消息失败:%v\n", err)

@@ -18,7 +18,8 @@ func TestManyRawClient(host string, port int, clientNum int) []*RawClient {
 	go monitor.Start()
 	var clients []*RawClient
 	for i := 0; i < clientNum; i++ {
-		cli := &RawClient{Host: host, Port: port, Name: fmt.Sprintf("好家伙%d", i), Monitor: monitor}
+		cli := &RawClient{Host: host, Port: port, Name: fmt.Sprintf("好家伙%d", i),
+			Monitor: monitor, PrintDetail: clientNum == 1}
 		go cli.Start()
 		clients = append(clients, cli)
 		time.Sleep(20 * time.Millisecond)
