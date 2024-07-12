@@ -3,6 +3,7 @@ go lang toolkit
 
 ## 依赖
 - go get -u gopkg.in/natefinch/lumberjack.v2
+- go get -u github.com/gin-gonic/gin
 
 ## 运行
 #### 作为socket原始服务端

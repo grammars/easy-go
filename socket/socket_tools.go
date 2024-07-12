@@ -2,6 +2,8 @@ package socket
 
 import (
 	"fmt"
+	"github.com/gorilla/websocket"
+	"log/slog"
 	"net"
 	"time"
 )
@@ -15,6 +17,13 @@ func CloseConn(conn net.Conn) {
 	} else {
 		connCloseSum++
 		fmt.Printf("成功关闭1个连接 (累计关闭%d)\n", connCloseSum)
+	}
+}
+
+func CloseWebConn(conn *websocket.Conn) {
+	err := conn.Close()
+	if err != nil {
+		slog.Error("关闭webSocket连接失败", err)
 	}
 }
 

@@ -1,7 +1,7 @@
 package ego
 
 func Version() string {
-	return "0.0.16 (2024-07-12 14:33)"
+	return "0.0.17 (2024-07-12 17:58)"
 }
 
 func Return[T any](boolExpression bool, trueReturnValue, falseReturnValue T) T {
