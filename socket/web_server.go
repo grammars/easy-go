@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/grammars/easy-go/sugar"
 	"log/slog"
 	"net/http"
 )
 
 type WebServer struct {
-	Port        int
-	PrintDetail bool
-	Monitor     *Monitor
-	upgrader    *websocket.Upgrader
+	Port            int
+	PrintDetail     bool
+	Monitor         *Monitor
+	upgrader        *websocket.Upgrader
+	ReadBufferSize  int
+	WriteBufferSize int
 }
 
 func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
@@ -24,8 +27,8 @@ func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 		c.JSON(200, gin.H{"name": "🐑", "age": 18})
 	})
 	srv.upgrader = &websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
+		ReadBufferSize:  sugar.EnsurePositive(srv.ReadBufferSize, 64),
+		WriteBufferSize: sugar.EnsurePositive(srv.WriteBufferSize, 64),
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
@@ -45,6 +48,7 @@ func (srv *WebServer) wsHandler(c *gin.Context) {
 		slog.Error("Error upgrading to websocket:", err)
 		return
 	}
+	slog.Info("Accept new websocket connection")
 	defer CloseWebConn(conn)
 
 	for {

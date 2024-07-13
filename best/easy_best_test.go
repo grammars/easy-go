@@ -1,4 +1,4 @@
-package practice
+package best
 
 import (
 	"fmt"

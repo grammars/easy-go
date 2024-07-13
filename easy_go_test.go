@@ -1,10 +1,10 @@
 package ego
 
 import (
-	"github.com/grammars/easy-go/practice"
+	"github.com/grammars/easy-go/best"
 	"testing"
 )
 
 func TestAny(t *testing.T) {
-	practice.Echo()
+	best.Echo()
 }

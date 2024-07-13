@@ -2,7 +2,7 @@ package file
 
 import (
 	"fmt"
-	ego "github.com/grammars/easy-go"
+	"github.com/grammars/easy-go/sugar"
 	"testing"
 )
 
@@ -10,7 +10,7 @@ func TestCommon(t *testing.T) {
 	fmt.Println("当前可执行文件所在的目录：", GetExeDir())
 	existsCheck := func(path string) {
 		b := Exists(path)
-		t.Logf("%s %s", path, ego.Return(b, "存在", "不存在"))
+		t.Logf("%s %s", path, sugar.ReturnIf(b, "存在", "不存在"))
 	}
 	existsCheck("C:\\oem8.log")
 	existsCheck("C:\\nothing")
