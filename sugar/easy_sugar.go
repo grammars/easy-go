@@ -4,6 +4,14 @@ type number interface {
 	int | int8 | int16 | int32 | int64 | float32 | float64
 }
 
+// EnsureNotBlank 确保不为龙， 如果空就返回defaultStr
+func EnsureNotBlank(str, defaultStr string) string {
+	if len(str) == 0 {
+		return defaultStr
+	}
+	return str
+}
+
 // EnsurePositive 确保是正数(>0) 如果不是就返回defaultNum
 func EnsurePositive[T number](num, defaultNum T) T {
 	if num <= 0 {

@@ -3,10 +3,20 @@ package socket
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/grammars/easy-go/sugar"
 	"log/slog"
 	"net"
+	"strings"
 	"time"
 )
+
+func GetWsPath(path string) string {
+	path = sugar.EnsureNotBlank(path, "/ws")
+	if !strings.HasPrefix(path, "/") {
+		return "/" + path
+	}
+	return path
+}
 
 var connCloseSum = 0
 

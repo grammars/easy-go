@@ -12,10 +12,12 @@ import (
 type WebServer struct {
 	Port            int
 	PrintDetail     bool
-	Monitor         *Monitor
-	upgrader        *websocket.Upgrader
+	WsPath          string
 	ReadBufferSize  int
 	WriteBufferSize int
+
+	Monitor  *Monitor
+	upgrader *websocket.Upgrader
 }
 
 func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
@@ -33,7 +35,7 @@ func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 			return true
 		},
 	}
-	ginEngine.GET("/ws", srv.wsHandler)
+	ginEngine.GET(GetWsPath(srv.WsPath), srv.wsHandler)
 	addr := fmt.Sprintf("0.0.0.0:%d", srv.Port)
 	err := ginEngine.Run(addr)
 	if err != nil {

@@ -28,4 +28,6 @@ func TestWebServer(t *testing.T) {
 
 func TestWebClient(t *testing.T) {
 	t.Log("TestWebClient")
+	cli := &WebClient{Host: "192.168.11.11", Port: 6677, Name: "一只客户端"}
+	cli.Start()
 }

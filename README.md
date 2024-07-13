@@ -46,5 +46,5 @@ go lang toolkit
 
 #### 运行
 ```shell
- nohup ./excel-go > output.log 2>&1 &
+ nohup ./easy-go > output.log 2>&1 &
 ```
