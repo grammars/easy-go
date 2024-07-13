@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"log/slog"
 	"net/url"
+	"time"
 )
 
 type WebClient struct {
@@ -26,6 +27,14 @@ func (cli *WebClient) Start() {
 		slog.Error("连接失败", "url", u.String(), "err", err.Error())
 		return
 	}
+	if cli.Monitor != nil {
+		cli.Monitor.ValidNum <- 1
+	}
+	defer func() {
+		if cli.Monitor != nil {
+			cli.Monitor.InvalidNum <- 1
+		}
+	}()
 	defer CloseWebConn(conn)
 
 	done := make(chan struct{})
@@ -38,6 +47,9 @@ func (cli *WebClient) Start() {
 				slog.Error("读取消息失败", "Name", cli.Name, "err", err.Error())
 				return
 			}
+			if cli.Monitor != nil {
+				cli.Monitor.BytesRead <- len(message)
+			}
 			if cli.PrintDetail {
 				slog.Info("读取到了:", "message", string(message))
 			}
@@ -48,12 +60,17 @@ func (cli *WebClient) Start() {
 	for {
 		i++
 		message := fmt.Sprintf("Hi Web-Server-(%d)", i)
-		err := conn.WriteMessage(websocket.TextMessage, []byte(message))
+		resp := []byte(message)
+		err := conn.WriteMessage(websocket.TextMessage, resp)
 		if err != nil {
 			slog.Error("写消息失败", "Name", cli.Name, "err", err.Error())
 			return
 		}
-		if i >= 10 {
+		if cli.Monitor != nil {
+			cli.Monitor.BytesWrite <- len(resp)
+		}
+		time.Sleep(200 * time.Millisecond)
+		if i >= 5*3600 {
 			break
 		}
 	}

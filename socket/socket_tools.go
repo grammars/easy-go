@@ -48,6 +48,12 @@ type Monitor struct {
 	IntervalMilli int
 }
 
+func CreateMonitorStart() *Monitor {
+	monitor := &Monitor{}
+	go monitor.Start()
+	return monitor
+}
+
 func (m *Monitor) Start() {
 	m.BytesRead = make(chan int)
 	m.BytesWrite = make(chan int)
@@ -88,11 +94,12 @@ func (m *Monitor) Start() {
 			curTime := time.Now()
 			deltaTime := curTime.UnixMilli() - lastTickTime
 			lastTickTime = time.Now().UnixMilli()
-			fmt.Printf("%s 嘀嗒 %d 读取字节%d 次数%d 速度%s %s 写出字节%d 次数%d 速度%s %s 有效数=%d 失效数=%d accept失败数=%d \n",
+			onlineNum := sumValid - sumInvalid
+			fmt.Printf("%s 嘀嗒 %d 读取字节%d 次数%d 速度%s %s 写出字节%d 次数%d 速度%s %s 在线=%d 有效数=%d 失效数=%d accept失败数=%d \n",
 				curTime.Format(time.DateTime), nTick,
 				snBytesRead.Total, snBytesRead.Times, speed(snBytesRead.DeltaNum(), deltaTime, "B"), speed(int64(snBytesRead.DeltaTimes()), deltaTime, "条"),
 				snBytesWrite.Total, snBytesWrite.Times, speed(snBytesWrite.DeltaNum(), deltaTime, "B"), speed(int64(snBytesWrite.DeltaTimes()), deltaTime, "条"),
-				sumValid, sumInvalid, sumAcceptFail)
+				onlineNum, sumValid, sumInvalid, sumAcceptFail)
 			break
 		}
 	}

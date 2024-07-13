@@ -8,6 +8,7 @@ import (
 	"github.com/grammars/easy-go/sugar"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"sync/atomic"
 	"time"
@@ -31,6 +32,14 @@ type WebVisitor struct {
 	index uint64
 	uid   uint64
 	conn  *websocket.Conn
+}
+
+func (srv *WebServer) StartDefault() {
+	_, err := srv.Start(nil)
+	if err != nil {
+		slog.Error("启动WebServer失败", "Error", err)
+		return
+	}
 }
 
 func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
@@ -74,6 +83,9 @@ func (srv *WebServer) appendVisitor(conn *websocket.Conn) *WebVisitor {
 	if srv.PrintDetail {
 		srv.printVisitorMap()
 	}
+	if srv.Monitor != nil {
+		srv.Monitor.ValidNum <- 1
+	}
 	return &visitor
 }
 
@@ -83,6 +95,7 @@ func (srv *WebServer) removeVisitor(visitorUid uint64) {
 	if srv.PrintDetail {
 		srv.printVisitorMap()
 	}
+	srv.Monitor.InvalidNum <- 1
 }
 
 func (srv *WebServer) wsHandler(c *gin.Context) {
@@ -99,21 +112,30 @@ func (srv *WebServer) wsHandler(c *gin.Context) {
 		messageType, message, err := conn.ReadMessage()
 		if err != nil && err != io.EOF {
 			var wce *websocket.CloseError
-			ok := errors.As(err, &wce)
-			if ok {
-				slog.Warn("客户端已断开", "Code", wce.Code, "Text", wce.Text)
+			if errors.As(err, &wce) {
+				slog.Warn("客户端已断开(websocket.CloseError)", "Code", wce.Code, "Text", wce.Text)
 			} else {
-				slog.Error("Error read message from websocket:", err)
+				var noe *net.OpError
+				if errors.As(err, &noe) {
+					slog.Warn("客户端已断开(net.OpError)", "Op", noe.Op, "Error", noe.Error())
+				} else {
+					slog.Error("Error read message from websocket:", err)
+				}
 			}
 			break
+		}
+		if srv.Monitor != nil {
+			srv.Monitor.BytesRead <- len(message)
 		}
 		if srv.PrintDetail {
 			slog.Info("收到WebSocket发来的消息", "message", message)
 		}
-		err = conn.WriteMessage(messageType, []byte("俺收到了消息"))
+		resp := []byte("俺收到了消息")
+		err = conn.WriteMessage(messageType, resp)
 		if err != nil {
 			slog.Error("Error write message from websocket:", err)
 			break
 		}
+		srv.Monitor.BytesWrite <- len(resp)
 	}
 }

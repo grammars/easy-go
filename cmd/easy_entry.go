@@ -23,6 +23,12 @@ func main() {
 	case "src":
 		RunSocketRawClient(*host, *port, *nc)
 		break
+	case "sws":
+		RunSocketWebServer(*port)
+		break
+	case "swc":
+		RunSocketWebClient(*host, *port, *nc)
+		break
 	default:
 		RunDefault(*runType)
 	}
@@ -30,12 +36,25 @@ func main() {
 
 func RunSocketRawServer(port int) {
 	fmt.Printf("RunSocketRawServer port=%d\n", port)
-	socket.CreateRawServer(port).Start()
+	srv := &socket.RawServer{Port: port, Monitor: socket.CreateMonitorStart()}
+	srv.Start()
 }
 
 func RunSocketRawClient(host string, port int, clientNum int) {
 	fmt.Printf("RunSocketRawClient host=%s port=%d clientNum=%d\n", host, port, clientNum)
 	socket.TestManyRawClient(host, port, clientNum)
+	time.Sleep(30 * time.Minute)
+}
+
+func RunSocketWebServer(port int) {
+	fmt.Printf("RunSocketWebServer port=%d\n", port)
+	srv := &socket.WebServer{Port: port, Monitor: socket.CreateMonitorStart()}
+	srv.StartDefault()
+}
+
+func RunSocketWebClient(host string, port int, clientNum int) {
+	fmt.Printf("RunSocketWebClient host=%s port=%d clientNum=%d\n", host, port, clientNum)
+	socket.TestManyWebClient(host, port, clientNum)
 	time.Sleep(30 * time.Minute)
 }
 
