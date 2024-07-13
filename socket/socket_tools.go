@@ -33,7 +33,9 @@ func CloseConn(conn net.Conn) {
 func CloseWebConn(conn *websocket.Conn) {
 	err := conn.Close()
 	if err != nil {
-		slog.Error("关闭webSocket连接失败", err)
+		slog.Error("关闭webSocket连接 失败", err)
+	} else {
+		slog.Info("关闭webSocket连接 成功")
 	}
 }
 

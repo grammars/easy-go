@@ -19,7 +19,7 @@ func TestRawClient(t *testing.T) {
 
 func TestWebServer(t *testing.T) {
 	t.Log("TestWebServer")
-	srv := &WebServer{Port: 6677}
+	srv := &WebServer{Port: 6677, PrintDetail: true}
 	_, err := srv.Start(nil)
 	if err != nil {
 		t.Error(err)
