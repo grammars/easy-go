@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -25,7 +26,7 @@ type WebServer struct {
 	Monitor        *Monitor
 	upgrader       *websocket.Upgrader
 	visitorHistory uint64
-	visitorMap     map[uint64]*WebVisitor
+	visitorMap     *sync.Map //map[uint64]*WebVisitor
 }
 
 type WebVisitor struct {
@@ -51,7 +52,7 @@ func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 	ginEngine.GET("/status", func(c *gin.Context) {
 		c.JSON(200, gin.H{"name": "🐑", "age": 18})
 	})
-	srv.visitorMap = make(map[uint64]*WebVisitor)
+	srv.visitorMap = new(sync.Map) //make(map[uint64]*WebVisitor)
 	srv.upgrader = &websocket.Upgrader{
 		ReadBufferSize:  sugar.EnsurePositive(srv.ReadBufferSize, 64),
 		WriteBufferSize: sugar.EnsurePositive(srv.WriteBufferSize, 64),
@@ -69,16 +70,23 @@ func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 }
 
 func (srv *WebServer) printVisitorMap() {
-	for k, v := range srv.visitorMap {
-		slog.Info("打印visitorMap", "uid", k, "index", v.index, "addr", v.conn.RemoteAddr())
-	}
+	//for k, v := range srv.visitorMap {
+	//	slog.Info("打印visitorMap", "uid", k, "index", v.index, "addr", v.conn.RemoteAddr())
+	//}
+	srv.visitorMap.Range(func(k, v any) bool {
+		uid := v.(uint64)
+		visitor := v.(*WebVisitor)
+		slog.Info("打印visitorMap", "uid", uid, "index", visitor.index, "addr", visitor.conn.RemoteAddr())
+		return true
+	})
 }
 
 func (srv *WebServer) appendVisitor(conn *websocket.Conn) *WebVisitor {
 	visitor := WebVisitor{conn: conn}
 	visitor.index = atomic.AddUint64(&srv.visitorHistory, 1)
 	visitor.uid = uint64(srv.StartTime.UnixMilli()) + visitor.index
-	srv.visitorMap[visitor.uid] = &visitor
+	srv.visitorMap.Store(visitor.uid, &visitor)
+	//srv.visitorMap[visitor.uid] = &visitor
 	slog.Info("Accept客户端", "uid", visitor.uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if srv.PrintDetail {
 		srv.printVisitorMap()
@@ -90,7 +98,8 @@ func (srv *WebServer) appendVisitor(conn *websocket.Conn) *WebVisitor {
 }
 
 func (srv *WebServer) removeVisitor(visitorUid uint64) {
-	delete(srv.visitorMap, visitorUid)
+	//delete(srv.visitorMap, visitorUid)
+	srv.visitorMap.Delete(visitorUid)
 	slog.Info("Remove客户端", "visitorUid", visitorUid)
 	if srv.PrintDetail {
 		srv.printVisitorMap()

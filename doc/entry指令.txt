@@ -1,0 +1,19 @@
+### Raw Server
+
+./easy-go --run srs --port 6677
+
+### Raw Client
+
+./easy-go --run src --host 192.168.11.11 --port 6677 -nc 5
+
+./easy-go --run src --host 192.168.10.138 --port 6677 -nc 30
+
+### Web Server
+
+./easy-go --run sws --port 6677
+
+### Web Client
+
+./easy-go --run swc --host 192.168.11.11 --port 6677 -nc 5
+
+./easy-go --run swc --host 192.168.10.138 --port 6677 -nc 30

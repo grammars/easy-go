@@ -1,0 +1,25 @@
+lsof（List Open Files）是一个列出当前系统打开文件的工具。要查看特定用户打开的文件句柄数，可以使用以下命令：
+lsof -u root | wc -l
+安装：
+sudo apt-get install lsof
+sudo yum install lsof
+
+查看资源限制情况
+cat /proc/sys/fs/file-max
+ulimit -a
+或者
+prlimit
+
+修改打开NOFile限制
+ulimit -n 4096 // 通常是不够的，可能 lsof -u root | wc -l 查看之后 只有 一两千，但是还是不够
+ulimit -n 65536  // 这样通常是够的
+上面这个设置是临时的，仅针对当前shell会话有效
+
+
+vim /etc/security/limits.conf
+root soft nofile 65536
+root hard nofile 65536
+* soft nofile 65536
+* hard nofile 65536
+
+shutdown -r now
