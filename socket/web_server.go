@@ -21,6 +21,9 @@ type WebServer struct {
 	WsPath          string
 	ReadBufferSize  int
 	WriteBufferSize int
+	TLS             bool
+	CrtFile         string
+	KeyFile         string
 
 	StartTime      time.Time
 	Monitor        *Monitor
@@ -61,8 +64,17 @@ func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 		},
 	}
 	ginEngine.GET(GetWsPath(srv.WsPath), srv.wsHandler)
+	if srv.Port <= 0 {
+		srv.Port = sugar.ReturnIf(srv.TLS, 443, 80)
+	}
 	addr := fmt.Sprintf("0.0.0.0:%d", srv.Port)
-	err := ginEngine.Run(addr)
+	slog.Info("WebServer 监听", "addr", addr)
+	var err error
+	if srv.TLS {
+		err = ginEngine.RunTLS(addr, srv.CrtFile, srv.KeyFile)
+	} else {
+		err = ginEngine.Run(addr)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -70,9 +82,6 @@ func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 }
 
 func (srv *WebServer) printVisitorMap() {
-	//for k, v := range srv.visitorMap {
-	//	slog.Info("打印visitorMap", "uid", k, "index", v.index, "addr", v.conn.RemoteAddr())
-	//}
 	srv.visitorMap.Range(func(k, v any) bool {
 		uid := v.(uint64)
 		visitor := v.(*WebVisitor)
@@ -86,7 +95,6 @@ func (srv *WebServer) appendVisitor(conn *websocket.Conn) *WebVisitor {
 	visitor.index = atomic.AddUint64(&srv.visitorHistory, 1)
 	visitor.uid = uint64(srv.StartTime.UnixMilli()) + visitor.index
 	srv.visitorMap.Store(visitor.uid, &visitor)
-	//srv.visitorMap[visitor.uid] = &visitor
 	slog.Info("Accept客户端", "uid", visitor.uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if srv.PrintDetail {
 		srv.printVisitorMap()
@@ -98,7 +106,6 @@ func (srv *WebServer) appendVisitor(conn *websocket.Conn) *WebVisitor {
 }
 
 func (srv *WebServer) removeVisitor(visitorUid uint64) {
-	//delete(srv.visitorMap, visitorUid)
 	srv.visitorMap.Delete(visitorUid)
 	slog.Info("Remove客户端", "visitorUid", visitorUid)
 	if srv.PrintDetail {

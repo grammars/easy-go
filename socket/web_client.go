@@ -3,6 +3,7 @@ package socket
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/grammars/easy-go/sugar"
 	"log/slog"
 	"net/url"
 	"time"
@@ -11,6 +12,7 @@ import (
 type WebClient struct {
 	Host        string
 	Port        int
+	TLS         bool
 	WsPath      string
 	Name        string
 	PrintDetail bool
@@ -19,9 +21,15 @@ type WebClient struct {
 }
 
 func (cli *WebClient) Start() {
-	addr := fmt.Sprintf("%s:%d", cli.Host, cli.Port)
+	var addr string
+	if cli.Port <= 0 {
+		cli.Port = sugar.ReturnIf(cli.TLS, 443, 80)
+		addr = cli.Host
+	} else {
+		addr = fmt.Sprintf("%s:%d", cli.Host, cli.Port)
+	}
 	slog.Info("WebClient 开始启动", "Name", cli.Name, "addr", addr)
-	u := url.URL{Scheme: "ws", Host: addr, Path: GetWsPath(cli.WsPath)}
+	u := url.URL{Scheme: sugar.ReturnIf(cli.TLS, "wss", "ws"), Host: addr, Path: GetWsPath(cli.WsPath)}
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		slog.Error("连接失败", "url", u.String(), "err", err.Error())

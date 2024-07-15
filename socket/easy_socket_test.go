@@ -23,8 +23,21 @@ func TestWebServer(t *testing.T) {
 	srv.StartDefault()
 }
 
+func TestWebServerTls(t *testing.T) {
+	t.Log("TestWebServerTls")
+	srv := &WebServer{Port: 0, PrintDetail: false, Monitor: CreateMonitorStart(),
+		TLS: true, CrtFile: "E:\\gp\\assets\\server.crt", KeyFile: "E:\\gp\\assets\\server.key"}
+	srv.StartDefault()
+}
+
 func TestWebClient(t *testing.T) {
 	t.Log("TestWebClient")
-	TestManyWebClient("192.168.11.11", 6677, 25)
+	TestManyWebClient("192.168.11.11", 6677, false, 25)
+	time.Sleep(1800 * time.Second)
+}
+
+func TestWebClientTls(t *testing.T) {
+	t.Log("TestWebClientTls")
+	TestManyWebClient("dev.ydwlgame.com", 0, true, 1)
 	time.Sleep(1800 * time.Second)
 }

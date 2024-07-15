@@ -18,11 +18,11 @@ func TestManyRawClient(host string, port int, clientNum int) []*RawClient {
 	return clients
 }
 
-func TestManyWebClient(host string, port int, clientNum int) []*WebClient {
+func TestManyWebClient(host string, port int, tls bool, clientNum int) []*WebClient {
 	monitor := CreateMonitorStart()
 	var clients []*WebClient
 	for i := 0; i < clientNum; i++ {
-		cli := &WebClient{Host: host, Port: port, Name: fmt.Sprintf("好家伙%d", i),
+		cli := &WebClient{Host: host, Port: port, TLS: tls, Name: fmt.Sprintf("好家伙%d", i),
 			Monitor: monitor, PrintDetail: clientNum == 1}
 		go cli.Start()
 		clients = append(clients, cli)
