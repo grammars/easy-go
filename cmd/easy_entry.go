@@ -33,7 +33,7 @@ func main() {
 		RunSocketWebClient(*host, *port, *tls, *nc)
 		break
 	default:
-		RunDefault(*runType)
+		RunDefault(*runType, *host, *port, *tls, *nc)
 	}
 }
 
@@ -66,8 +66,8 @@ func RunSocketWebClient(host string, port int, tls bool, clientNum int) {
 	time.Sleep(30 * time.Minute)
 }
 
-func RunDefault(runType string) {
-	fmt.Println("Unknown sub command:", runType)
+func RunDefault(runType string, host string, port int, tls bool, nc int) {
+	fmt.Printf("Unknown sub command:%s %s %d %v %d\n", runType, host, port, tls, nc)
 	var arr []int
 	fmt.Println("arr0 ", unsafe.Pointer(&arr))
 	arr = append(arr, 1)
@@ -75,4 +75,8 @@ func RunDefault(runType string) {
 	arr = append(arr, 2)
 	fmt.Println("arr2 ", unsafe.Pointer(&arr))
 	fmt.Println(arr)
+	absPath, _ := filepath.Abs("文件.txt")
+	fmt.Printf("absPath=%s\n", absPath)
+	absExePath := file.ConvAbsPathRelExe("相对于执行文件的文件.doc")
+	fmt.Printf("absExePath=%s\n", absExePath)
 }

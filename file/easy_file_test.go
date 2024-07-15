@@ -3,6 +3,8 @@ package file
 import (
 	"fmt"
 	"github.com/grammars/easy-go/sugar"
+	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -22,5 +24,25 @@ func TestCommon(t *testing.T) {
 	} else {
 		t.Logf("MD5计算得到:%s", md5)
 	}
+}
 
+func TestConvertAbsPath(t *testing.T) {
+	var do = func(path string, expectPath string) {
+		abs := ConvAbsPathRelExe(path)
+		if abs != expectPath {
+			t.Errorf("转化绝对路径❌ 输入路径=%s 得到绝对路径=%s 预期=%s", path, abs, expectPath)
+		} else {
+			t.Logf("转化绝对路径✅ 得到绝对路径=%s ", abs)
+		}
+	}
+	currentOS := runtime.GOOS
+	switch currentOS {
+	case "windows":
+		do("D:\\Java", "D:\\Java")
+		do("D:\\Go\\xyz", "D:\\Go\\xyz")
+	case "linux":
+		do("/home/demo/", "/home/demo/")
+		do("/home/lab/juice", "/home/lab/juice")
+	}
+	do("application.yml", filepath.Join(GetExeDir(), "application.yml"))
 }

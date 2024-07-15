@@ -28,6 +28,19 @@ func GetPathRelExe(relPath string) string {
 	return filepath.Join(GetExeDir(), relPath)
 }
 
+// ConvAbsPathRelExe 转化为绝对路径(这个绝对路径相对于可执行文件)
+// 与 filepath.Abs(path)的差异：
+// 比如 在 /home/ 下 执行 ./lab/easy-go
+// ConvertAbsPathRelExe 得到的结果是 /home/lab/${path}
+// filepath.Abs 得到的结果是 /home/${path}
+func ConvAbsPathRelExe(path string) string {
+	if filepath.IsAbs(path) {
+		return path
+	} else {
+		return filepath.Join(GetExeDir(), path)
+	}
+}
+
 func Exists(path string) bool {
 	_, err := os.Stat(path)
 	if err != nil {
