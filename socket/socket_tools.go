@@ -46,6 +46,33 @@ type Monitor struct {
 	ValidNum      chan int
 	InvalidNum    chan int
 	IntervalMilli int
+	Stat          *MonitorStat
+}
+
+type MonitorStat struct {
+	snBytesRead   *SumNum[int64]
+	snBytesWrite  *SumNum[int64]
+	sumAcceptFail int
+	sumValid      int
+	sumInvalid    int
+}
+
+func (stat *MonitorStat) Reset() {
+	stat.snBytesRead = &SumNum[int64]{}
+	stat.snBytesWrite = &SumNum[int64]{}
+	stat.sumAcceptFail = 0
+	stat.sumValid = 0
+	stat.sumInvalid = 0
+}
+
+func (stat *MonitorStat) ToMap() map[string]any {
+	m := make(map[string]any)
+	m["bytesReadTotal"] = stat.snBytesRead.Total
+	m["bytesWriteTotal"] = stat.snBytesWrite.Total
+	m["sumValid"] = stat.sumValid
+	m["sumInvalid"] = stat.sumInvalid
+	m["online"] = stat.sumValid - stat.sumInvalid
+	return m
 }
 
 func CreateMonitorStart() *Monitor {
@@ -63,43 +90,40 @@ func (m *Monitor) Start() {
 	if m.IntervalMilli == 0 {
 		m.IntervalMilli = 3000
 	}
+	m.Stat = &MonitorStat{}
+	m.Stat.Reset()
 	ticker := time.NewTicker(time.Millisecond * time.Duration(m.IntervalMilli))
 	defer ticker.Stop()
 	nTick := 0
-	var snBytesRead = &SumNum[int64]{}
-	var snBytesWrite = &SumNum[int64]{}
-	sumAcceptFail := 0
-	sumValid := 0
-	sumInvalid := 0
 	var lastTickTime = time.Now().UnixMilli()
 	for {
 		select {
 		case num := <-m.BytesRead:
-			snBytesRead.Add(int64(num))
+			m.Stat.snBytesRead.Add(int64(num))
 			break
 		case num := <-m.BytesWrite:
-			snBytesWrite.Add(int64(num))
+			m.Stat.snBytesWrite.Add(int64(num))
 			break
 		case num := <-m.AcceptFailNum:
-			sumAcceptFail += num
+			m.Stat.sumAcceptFail += num
 			break
 		case <-m.ValidNum:
-			sumValid++
+			m.Stat.sumValid++
 			break
 		case <-m.InvalidNum:
-			sumInvalid++
+			m.Stat.sumInvalid++
 			break
 		case <-ticker.C:
 			nTick++
 			curTime := time.Now()
 			deltaTime := curTime.UnixMilli() - lastTickTime
 			lastTickTime = time.Now().UnixMilli()
-			onlineNum := sumValid - sumInvalid
+			onlineNum := m.Stat.sumValid - m.Stat.sumInvalid
 			fmt.Printf("%s 嘀嗒 %d 读取字节%d 次数%d 速度%s %s 写出字节%d 次数%d 速度%s %s 在线=%d 有效数=%d 失效数=%d accept失败数=%d \n",
 				curTime.Format(time.DateTime), nTick,
-				snBytesRead.Total, snBytesRead.Times, speed(snBytesRead.DeltaNum(), deltaTime, "B"), speed(int64(snBytesRead.DeltaTimes()), deltaTime, "条"),
-				snBytesWrite.Total, snBytesWrite.Times, speed(snBytesWrite.DeltaNum(), deltaTime, "B"), speed(int64(snBytesWrite.DeltaTimes()), deltaTime, "条"),
-				onlineNum, sumValid, sumInvalid, sumAcceptFail)
+				m.Stat.snBytesRead.Total, m.Stat.snBytesRead.Times, speed(m.Stat.snBytesRead.DeltaNum(), deltaTime, "B"), speed(int64(m.Stat.snBytesRead.DeltaTimes()), deltaTime, "条"),
+				m.Stat.snBytesWrite.Total, m.Stat.snBytesWrite.Times, speed(m.Stat.snBytesWrite.DeltaNum(), deltaTime, "B"), speed(int64(m.Stat.snBytesWrite.DeltaTimes()), deltaTime, "条"),
+				onlineNum, m.Stat.sumValid, m.Stat.sumInvalid, m.Stat.sumAcceptFail)
 			break
 		}
 	}

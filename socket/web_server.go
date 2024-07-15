@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/grammars/easy-go/best"
 	"github.com/grammars/easy-go/sugar"
 	"io"
 	"log/slog"
@@ -53,7 +54,11 @@ func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 		ginEngine = gin.Default()
 	}
 	ginEngine.GET("/status", func(c *gin.Context) {
-		c.JSON(200, gin.H{"name": "🐑", "age": 18})
+		if srv.Monitor != nil {
+			c.JSON(200, best.SuccessResult("已开启统计", srv.Monitor.Stat.ToMap()))
+		} else {
+			c.JSON(200, best.FailResult("未开启统计"))
+		}
 	})
 	srv.visitorMap = new(sync.Map) //make(map[uint64]*WebVisitor)
 	srv.upgrader = &websocket.Upgrader{
