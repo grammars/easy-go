@@ -88,7 +88,7 @@ func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 
 func (srv *WebServer) printVisitorMap() {
 	srv.visitorMap.Range(func(k, v any) bool {
-		uid := v.(uint64)
+		uid := k.(uint64)
 		visitor := v.(*WebVisitor)
 		slog.Info("打印visitorMap", "uid", uid, "index", visitor.index, "addr", visitor.conn.RemoteAddr())
 		return true
