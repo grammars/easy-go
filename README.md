@@ -5,6 +5,19 @@ go lang toolkit
 - go get -u gopkg.in/natefinch/lumberjack.v2
 - go get -u github.com/gin-gonic/gin
 
+## 同步GitHub
+```shell
+ ## 添加远程仓库 ##
+ git remote add github git@github.com:grammars/easy-go.git
+```
+```shell
+ ## 同步推送本地的main ##
+ git push github main:main
+```
+ssh: connect to host github.com port 22: Connection timed out 处理办法：  
+https://www.cnblogs.com/tsalita/p/16181711.html  
+或者 参考 yuque | 开发基础 | 科学上网
+
 ## 运行
 #### 作为socket原始服务端
 ```shell
