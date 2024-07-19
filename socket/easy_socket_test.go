@@ -22,13 +22,13 @@ func TestRawClient(t *testing.T) {
 
 func TestWebServer(t *testing.T) {
 	t.Log("TestWebServer")
-	srv := &WebServer{Port: 6677, PrintDetail: false, Monitor: CreateMonitorStart()}
+	srv := &WebServer[any]{Port: 6677, PrintDetail: false, Monitor: CreateMonitorStart()}
 	srv.StartDefault()
 }
 
 func TestWebServerTls(t *testing.T) {
 	t.Log("TestWebServerTls")
-	srv := &WebServer{Port: 0, PrintDetail: false, Monitor: CreateMonitorStart(),
+	srv := &WebServer[any]{Port: 0, PrintDetail: false, Monitor: CreateMonitorStart(),
 		TLS: true, CrtFile: "E:\\gp\\assets\\server.crt", KeyFile: "E:\\gp\\assets\\server.key"}
 	srv.StartDefault()
 }

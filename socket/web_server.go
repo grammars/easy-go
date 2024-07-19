@@ -16,11 +16,13 @@ import (
 	"time"
 )
 
-type WebServerHandler interface {
-	OnMessage(visitor *WebVisitor, message *[]byte)
+type WebServerHandler[VD any] interface {
+	OnConnect(visitor *WebVisitor[VD])
+	OnMessage(visitor *WebVisitor[VD], message *[]byte)
+	OnDisconnect(visitor *WebVisitor[VD])
 }
 
-type WebServer struct {
+type WebServer[VD any] struct {
 	Port            int
 	PrintDetail     bool
 	WsPath          string
@@ -32,19 +34,20 @@ type WebServer struct {
 
 	StartTime      time.Time
 	Monitor        *Monitor
-	Handler        WebServerHandler
+	Handler        WebServerHandler[VD]
 	upgrader       *websocket.Upgrader
 	visitorHistory uint64
 	visitorMap     *sync.Map //map[uint64]*WebVisitor
 }
 
-type WebVisitor struct {
+type WebVisitor[VD any] struct {
 	index uint64
 	uid   uint64
 	conn  *websocket.Conn
+	Data  *VD
 }
 
-func (srv *WebServer) StartDefault() {
+func (srv *WebServer[VD]) StartDefault() {
 	_, err := srv.Start(nil)
 	if err != nil {
 		slog.Error("启动WebServer失败", "Error", err)
@@ -52,7 +55,7 @@ func (srv *WebServer) StartDefault() {
 	}
 }
 
-func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
+func (srv *WebServer[VD]) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 	slog.Info("WebServer 开始启动")
 	srv.StartTime = time.Now()
 	if ginEngine == nil {
@@ -91,17 +94,17 @@ func (srv *WebServer) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 	return ginEngine, nil
 }
 
-func (srv *WebServer) printVisitorMap() {
+func (srv *WebServer[VD]) printVisitorMap() {
 	srv.visitorMap.Range(func(k, v any) bool {
 		uid := k.(uint64)
-		visitor := v.(*WebVisitor)
+		visitor := v.(*WebVisitor[any])
 		slog.Info("打印visitorMap", "uid", uid, "index", visitor.index, "addr", visitor.conn.RemoteAddr())
 		return true
 	})
 }
 
-func (srv *WebServer) appendVisitor(conn *websocket.Conn) *WebVisitor {
-	visitor := WebVisitor{conn: conn}
+func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *WebVisitor[VD] {
+	visitor := WebVisitor[VD]{conn: conn}
 	visitor.index = atomic.AddUint64(&srv.visitorHistory, 1)
 	visitor.uid = uint64(srv.StartTime.UnixMilli()) + visitor.index
 	srv.visitorMap.Store(visitor.uid, &visitor)
@@ -115,7 +118,7 @@ func (srv *WebServer) appendVisitor(conn *websocket.Conn) *WebVisitor {
 	return &visitor
 }
 
-func (srv *WebServer) removeVisitor(visitorUid uint64) {
+func (srv *WebServer[VD]) removeVisitor(visitorUid uint64) {
 	srv.visitorMap.Delete(visitorUid)
 	slog.Info("Remove客户端", "visitorUid", visitorUid)
 	if srv.PrintDetail {
@@ -124,14 +127,22 @@ func (srv *WebServer) removeVisitor(visitorUid uint64) {
 	srv.Monitor.InvalidNum <- 1
 }
 
-func (srv *WebServer) wsHandler(c *gin.Context) {
+func (srv *WebServer[VD]) wsHandler(c *gin.Context) {
 	conn, err := srv.upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		slog.Error("Error upgrading to websocket:", err)
 		return
 	}
 	visitor := srv.appendVisitor(conn)
+	if srv.Handler != nil {
+		srv.Handler.OnConnect(visitor)
+	}
 	defer srv.removeVisitor(visitor.uid)
+	defer func() {
+		if srv.Handler != nil {
+			srv.Handler.OnDisconnect(visitor)
+		}
+	}()
 	defer CloseWebConn(conn)
 
 	for {
