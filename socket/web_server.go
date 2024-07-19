@@ -16,6 +16,10 @@ import (
 	"time"
 )
 
+type WebServerHandler interface {
+	OnMessage(visitor *WebVisitor, message *[]byte)
+}
+
 type WebServer struct {
 	Port            int
 	PrintDetail     bool
@@ -28,6 +32,7 @@ type WebServer struct {
 
 	StartTime      time.Time
 	Monitor        *Monitor
+	Handler        WebServerHandler
 	upgrader       *websocket.Upgrader
 	visitorHistory uint64
 	visitorMap     *sync.Map //map[uint64]*WebVisitor
@@ -149,7 +154,16 @@ func (srv *WebServer) wsHandler(c *gin.Context) {
 			srv.Monitor.BytesRead <- len(message)
 		}
 		if srv.PrintDetail {
-			slog.Info("收到WebSocket发来的消息", "message", message)
+			messageLen := len(message)
+			if messageLen < 24 {
+				slog.Info("收到WebSocket发来的消息", "message", fmt.Sprintf("%x", message))
+			} else {
+				partMessage := message[:24]
+				slog.Info("收到WebSocket发来的消息", "message", fmt.Sprintf("%x len=%d", partMessage, messageLen))
+			}
+		}
+		if srv.Handler != nil {
+			srv.Handler.OnMessage(visitor, &message)
 		}
 		resp := []byte("俺收到了消息")
 		err = conn.WriteMessage(messageType, resp)

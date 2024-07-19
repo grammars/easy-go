@@ -5,6 +5,10 @@ go lang toolkit
 - go get -u gopkg.in/natefinch/lumberjack.v2
 - go get -u github.com/gin-gonic/gin
 
+```shell
+ go mod download -x
+```
+
 ## 同步GitHub
 ```shell
  ## 添加远程仓库 ##
@@ -61,3 +65,6 @@ https://www.cnblogs.com/tsalita/p/16181711.html
 ```shell
  nohup ./easy-go > output.log 2>&1 &
 ```
+
+## 设定
+项目均使用网络字节序(BigEndian)  
