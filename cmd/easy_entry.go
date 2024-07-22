@@ -39,7 +39,7 @@ func main() {
 
 func RunSocketRawServer(port int) {
 	fmt.Printf("RunSocketRawServer port=%d\n", port)
-	srv := &socket.RawServer{Port: port, Monitor: socket.CreateMonitorStart("🐟")}
+	srv := &socket.RawServer{Port: port, Monitor: socket.CreateMonitorStart("🐟", 5000)}
 	srv.Start()
 }
 
@@ -51,7 +51,7 @@ func RunSocketRawClient(host string, port int, clientNum int) {
 
 func RunSocketWebServer(port int, tls bool) {
 	fmt.Printf("RunSocketWebServer port=%d tls=%v\n", port, tls)
-	srv := &socket.WebServer[any]{Port: port, Monitor: socket.CreateMonitorStart("🐶"), TLS: tls}
+	srv := &socket.WebServer[any]{Port: port, Monitor: socket.CreateMonitorStart("🐶", 5000), TLS: tls}
 	if tls {
 		srv.CrtFile = filepath.Join(file.GetExeDir(), "server.crt")
 		srv.KeyFile = filepath.Join(file.GetExeDir(), "server.key")

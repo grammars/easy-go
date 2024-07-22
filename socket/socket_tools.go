@@ -41,12 +41,12 @@ func CloseWebConn(conn *websocket.Conn) {
 
 type Monitor struct {
 	Name          string
+	IntervalMilli int
 	BytesRead     chan int
 	BytesWrite    chan int
 	AcceptFailNum chan int
 	ValidNum      chan int
 	InvalidNum    chan int
-	IntervalMilli int
 	Stat          *MonitorStat
 }
 
@@ -76,8 +76,8 @@ func (stat *MonitorStat) ToMap() map[string]any {
 	return m
 }
 
-func CreateMonitorStart(name string) *Monitor {
-	monitor := &Monitor{Name: name}
+func CreateMonitorStart(name string, intervalMilli int) *Monitor {
+	monitor := &Monitor{Name: name, IntervalMilli: intervalMilli}
 	go monitor.Start()
 	return monitor
 }
