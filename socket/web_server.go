@@ -11,16 +11,8 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"sync"
-	"sync/atomic"
 	"time"
 )
-
-type WebServerHandler[VD any] interface {
-	OnConnect(visitor *WebVisitor[VD])
-	OnMessage(visitor *WebVisitor[VD], message *[]byte)
-	OnDisconnect(visitor *WebVisitor[VD])
-}
 
 type WebServer[VD any] struct {
 	Port            int
@@ -32,19 +24,11 @@ type WebServer[VD any] struct {
 	CrtFile         string
 	KeyFile         string
 
-	StartTime      time.Time
-	Monitor        *Monitor
-	Handler        WebServerHandler[VD]
-	upgrader       *websocket.Upgrader
-	visitorHistory uint64
-	visitorMap     *sync.Map //map[uint64]*WebVisitor
-}
-
-type WebVisitor[VD any] struct {
-	index uint64
-	uid   uint64
-	conn  *websocket.Conn
-	Data  *VD
+	StartTime  time.Time
+	Monitor    *Monitor
+	Handler    VisitorServerHandler[VD]
+	upgrader   *websocket.Upgrader
+	visitorMap *VisitorMap[VD]
 }
 
 func (srv *WebServer[VD]) StartDefault() {
@@ -68,7 +52,7 @@ func (srv *WebServer[VD]) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 			c.JSON(200, best.FailResult("未开启统计"))
 		}
 	})
-	srv.visitorMap = new(sync.Map) //make(map[uint64]*WebVisitor)
+	srv.visitorMap = CreateVisitorMap[VD](srv)
 	srv.upgrader = &websocket.Upgrader{
 		ReadBufferSize:  sugar.EnsurePositive(srv.ReadBufferSize, 64),
 		WriteBufferSize: sugar.EnsurePositive(srv.WriteBufferSize, 64),
@@ -94,35 +78,27 @@ func (srv *WebServer[VD]) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 	return ginEngine, nil
 }
 
-func (srv *WebServer[VD]) printVisitorMap() {
-	srv.visitorMap.Range(func(k, v any) bool {
-		uid := k.(uint64)
-		visitor := v.(*WebVisitor[VD])
-		slog.Info("打印visitorMap", "uid", uid, "index", visitor.index, "addr", visitor.conn.RemoteAddr())
-		return true
-	})
+func (srv *WebServer[VD]) GetStartTime() time.Time {
+	return srv.StartTime
 }
 
-func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *WebVisitor[VD] {
-	visitor := WebVisitor[VD]{conn: conn}
-	visitor.index = atomic.AddUint64(&srv.visitorHistory, 1)
-	visitor.uid = uint64(srv.StartTime.UnixMilli()) + visitor.index
-	srv.visitorMap.Store(visitor.uid, &visitor)
+func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *Visitor[VD] {
+	visitor := srv.visitorMap.Append(conn)
 	slog.Info("Accept客户端", "uid", visitor.uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if srv.PrintDetail {
-		srv.printVisitorMap()
+		srv.visitorMap.Print()
 	}
 	if srv.Monitor != nil {
 		srv.Monitor.ValidNum <- 1
 	}
-	return &visitor
+	return visitor
 }
 
 func (srv *WebServer[VD]) removeVisitor(visitorUid uint64) {
-	srv.visitorMap.Delete(visitorUid)
+	srv.visitorMap.Remove(visitorUid)
 	slog.Info("Remove客户端", "visitorUid", visitorUid)
 	if srv.PrintDetail {
-		srv.printVisitorMap()
+		srv.visitorMap.Print()
 	}
 	srv.Monitor.InvalidNum <- 1
 }
