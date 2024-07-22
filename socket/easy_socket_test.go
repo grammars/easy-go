@@ -10,7 +10,7 @@ import (
 
 func TestRawServer(t *testing.T) {
 	t.Log("TestRawServer")
-	srv := &RawServer{Port: 6677, Monitor: CreateMonitorStart()}
+	srv := &RawServer{Port: 6677, Monitor: CreateMonitorStart("测试")}
 	srv.Start()
 }
 
@@ -22,13 +22,13 @@ func TestRawClient(t *testing.T) {
 
 func TestWebServer(t *testing.T) {
 	t.Log("TestWebServer")
-	srv := &WebServer[any]{Port: 6677, PrintDetail: false, Monitor: CreateMonitorStart()}
+	srv := &WebServer[any]{Port: 6677, PrintDetail: false, Monitor: CreateMonitorStart("测试")}
 	srv.StartDefault()
 }
 
 func TestWebServerTls(t *testing.T) {
 	t.Log("TestWebServerTls")
-	srv := &WebServer[any]{Port: 0, PrintDetail: false, Monitor: CreateMonitorStart(),
+	srv := &WebServer[any]{Port: 0, PrintDetail: false, Monitor: CreateMonitorStart("测试"),
 		TLS: true, CrtFile: "E:\\gp\\assets\\server.crt", KeyFile: "E:\\gp\\assets\\server.key"}
 	srv.StartDefault()
 }

@@ -40,6 +40,7 @@ func CloseWebConn(conn *websocket.Conn) {
 }
 
 type Monitor struct {
+	Name          string
 	BytesRead     chan int
 	BytesWrite    chan int
 	AcceptFailNum chan int
@@ -75,8 +76,8 @@ func (stat *MonitorStat) ToMap() map[string]any {
 	return m
 }
 
-func CreateMonitorStart() *Monitor {
-	monitor := &Monitor{}
+func CreateMonitorStart(name string) *Monitor {
+	monitor := &Monitor{Name: name}
 	go monitor.Start()
 	return monitor
 }
@@ -119,7 +120,8 @@ func (m *Monitor) Start() {
 			deltaTime := curTime.UnixMilli() - lastTickTime
 			lastTickTime = time.Now().UnixMilli()
 			onlineNum := m.Stat.sumValid - m.Stat.sumInvalid
-			fmt.Printf("%s 嘀嗒 %d 读取字节%d 次数%d 速度%s %s 写出字节%d 次数%d 速度%s %s 在线=%d 有效数=%d 失效数=%d accept失败数=%d \n",
+			fmt.Printf("[%s] %s 嘀嗒 %d 读取字节%d 次数%d 速度%s %s 写出字节%d 次数%d 速度%s %s 在线=%d 有效数=%d 失效数=%d accept失败数=%d \n",
+				sugar.EnsureNotBlank(m.Name, "默认监视器"),
 				curTime.Format(time.DateTime), nTick,
 				m.Stat.snBytesRead.Total, m.Stat.snBytesRead.Times, speed(m.Stat.snBytesRead.DeltaNum(), deltaTime, "B"), speed(int64(m.Stat.snBytesRead.DeltaTimes()), deltaTime, "条"),
 				m.Stat.snBytesWrite.Total, m.Stat.snBytesWrite.Times, speed(m.Stat.snBytesWrite.DeltaNum(), deltaTime, "B"), speed(int64(m.Stat.snBytesWrite.DeltaTimes()), deltaTime, "条"),
