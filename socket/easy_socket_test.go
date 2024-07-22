@@ -10,7 +10,7 @@ import (
 
 func TestRawServer(t *testing.T) {
 	t.Log("TestRawServer")
-	srv := &RawServer{Port: 6677, Monitor: CreateMonitorStart("测试", 5000)}
+	srv := &RawServer[any]{Port: 6677, Monitor: CreateMonitorStart("测试", 5000)}
 	srv.Start()
 }
 

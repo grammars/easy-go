@@ -6,16 +6,22 @@ import (
 	"io"
 	"log/slog"
 	"net"
+	"time"
 )
 
-type RawServer struct {
+type RawServer[VD any] struct {
 	Port        int
 	PrintDetail bool
-	Monitor     *Monitor
+
+	StartTime  time.Time
+	Monitor    *Monitor
+	Handler    VisitorServerHandler[VD]
+	VisitorMap *VisitorMap[VD]
 }
 
-func (srv *RawServer) Start() {
+func (srv *RawServer[VD]) Start() {
 	slog.Info("开始启动SocketServer")
+	srv.StartTime = time.Now()
 	listen, err := net.Listen("tcp", fmt.Sprintf(":%d", srv.Port))
 	if err != nil {
 		slog.Error("启动监听失败", "Error", err.Error())
@@ -42,7 +48,42 @@ func (srv *RawServer) Start() {
 	}
 }
 
-func ReadWriteAsServer(conn net.Conn, srv *RawServer) {
+func (srv *RawServer[VD]) GetStartTime() time.Time {
+	return srv.StartTime
+}
+
+func (srv *RawServer[VD]) appendVisitor(conn net.Conn) *Visitor[VD] {
+	visitor := srv.VisitorMap.Append(conn)
+	slog.Info("Accept客户端", "uid", visitor.uid, "index", visitor.index, "addr", conn.RemoteAddr())
+	if srv.PrintDetail {
+		srv.VisitorMap.Print()
+	}
+	if srv.Monitor != nil {
+		srv.Monitor.ValidNum <- 1
+	}
+	return visitor
+}
+
+func (srv *RawServer[VD]) removeVisitor(visitorUid uint64) {
+	srv.VisitorMap.Remove(visitorUid)
+	slog.Info("Remove客户端", "visitorUid", visitorUid)
+	if srv.PrintDetail {
+		srv.VisitorMap.Print()
+	}
+	srv.Monitor.InvalidNum <- 1
+}
+
+func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
+	visitor := srv.appendVisitor(conn)
+	if srv.Handler != nil {
+		srv.Handler.OnConnect(visitor)
+	}
+	defer srv.removeVisitor(visitor.uid)
+	defer func() {
+		if srv.Handler != nil {
+			srv.Handler.OnDisconnect(visitor)
+		}
+	}()
 	defer CloseConn(conn)
 	reader := bufio.NewReader(conn)
 	for {
@@ -50,9 +91,6 @@ func ReadWriteAsServer(conn net.Conn, srv *RawServer) {
 		n, err := reader.Read(buf[:])
 		if err != nil && err != io.EOF {
 			slog.Error("读取失败", "Error", err.Error())
-			if srv.Monitor != nil {
-				srv.Monitor.InvalidNum <- 1
-			}
 			break
 		}
 		if srv.Monitor != nil {

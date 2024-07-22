@@ -24,11 +24,12 @@ type WebServer[VD any] struct {
 	CrtFile         string
 	KeyFile         string
 
+	upgrader *websocket.Upgrader
+
 	StartTime  time.Time
 	Monitor    *Monitor
 	Handler    VisitorServerHandler[VD]
-	upgrader   *websocket.Upgrader
-	visitorMap *VisitorMap[VD]
+	VisitorMap *VisitorMap[VD]
 }
 
 func (srv *WebServer[VD]) StartDefault() {
@@ -52,7 +53,7 @@ func (srv *WebServer[VD]) Start(ginEngine *gin.Engine) (*gin.Engine, error) {
 			c.JSON(200, best.FailResult("未开启统计"))
 		}
 	})
-	srv.visitorMap = CreateVisitorMap[VD](srv)
+	srv.VisitorMap = CreateVisitorMap[VD](srv)
 	srv.upgrader = &websocket.Upgrader{
 		ReadBufferSize:  sugar.EnsurePositive(srv.ReadBufferSize, 64),
 		WriteBufferSize: sugar.EnsurePositive(srv.WriteBufferSize, 64),
@@ -83,10 +84,10 @@ func (srv *WebServer[VD]) GetStartTime() time.Time {
 }
 
 func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *Visitor[VD] {
-	visitor := srv.visitorMap.Append(conn)
+	visitor := srv.VisitorMap.Append(conn)
 	slog.Info("Accept客户端", "uid", visitor.uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if srv.PrintDetail {
-		srv.visitorMap.Print()
+		srv.VisitorMap.Print()
 	}
 	if srv.Monitor != nil {
 		srv.Monitor.ValidNum <- 1
@@ -95,10 +96,10 @@ func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *Visitor[VD] {
 }
 
 func (srv *WebServer[VD]) removeVisitor(visitorUid uint64) {
-	srv.visitorMap.Remove(visitorUid)
+	srv.VisitorMap.Remove(visitorUid)
 	slog.Info("Remove客户端", "visitorUid", visitorUid)
 	if srv.PrintDetail {
-		srv.visitorMap.Print()
+		srv.VisitorMap.Print()
 	}
 	srv.Monitor.InvalidNum <- 1
 }

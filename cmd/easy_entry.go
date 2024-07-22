@@ -39,7 +39,7 @@ func main() {
 
 func RunSocketRawServer(port int) {
 	fmt.Printf("RunSocketRawServer port=%d\n", port)
-	srv := &socket.RawServer{Port: port, Monitor: socket.CreateMonitorStart("🐟", 5000)}
+	srv := &socket.RawServer[any]{Port: port, Monitor: socket.CreateMonitorStart("🐟", 5000)}
 	srv.Start()
 }
 
