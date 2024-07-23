@@ -39,9 +39,6 @@ func (srv *RawServer[VD]) Start() {
 			}
 			continue
 		}
-		if srv.Monitor != nil {
-			srv.Monitor.ValidNum <- 1
-		}
 		if srv.PrintDetail {
 			slog.Info("有一个客户端连接我成功了", "RemoteAddr", conn.RemoteAddr())
 		}
