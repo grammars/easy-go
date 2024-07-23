@@ -16,6 +16,7 @@ type RawServer[VD any] struct {
 	Monitor    *Monitor
 	Handler    VisitorServerHandler[VD]
 	VisitorMap *VisitorMap[VD]
+	Decoder    socket.FrameDecoder
 }
 
 func (srv *RawServer[VD]) Start() {
@@ -83,14 +84,12 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 	}()
 	defer CloseConn(conn)
 	// reader := bufio.NewReader(conn)
-	decoder := socket.LengthFieldBasedFrameDecoder{}
 	for {
-		headerBytes, contentBytes, err := decoder.Decode(conn)
+		cr, err := srv.Decoder.Decode(conn)
 		if err != nil {
 			slog.Error("读取失败", "Error", err.Error())
 			break
 		}
-		n := len(headerBytes) + decoder.LengthFieldLength + len(contentBytes)
 		//var buf [1024]byte
 		//n, err := reader.Read(buf[:])
 		//if err != nil && err != io.EOF {
@@ -98,7 +97,7 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 		//	break
 		//}
 		if srv.Monitor != nil {
-			srv.Monitor.BytesRead <- n
+			srv.Monitor.BytesRead <- cr.FrameLength
 		}
 		//got := string(buf[:n])
 		//if srv.PrintDetail {

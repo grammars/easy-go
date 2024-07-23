@@ -14,26 +14,28 @@ type LengthFieldBasedFrameDecoder struct {
 	//InitialBytesToStrip int 不需要该字段，因为此处设计将以length为中心 切割成 2部分
 }
 
-func (decoder *LengthFieldBasedFrameDecoder) Decode(reader io.Reader) ([]byte, []byte, error) {
-	var headerBytes []byte = nil
+func (decoder *LengthFieldBasedFrameDecoder) Decode(reader io.Reader) (*CodecResult, error) {
+	result := &CodecResult{}
 	if decoder.LengthFieldOffset > 0 {
-		headerBytes = make([]byte, decoder.LengthFieldOffset)
-		if _, err := io.ReadFull(reader, headerBytes); err != nil {
-			return nil, nil, err
+		result.HeaderBytes = make([]byte, decoder.LengthFieldOffset)
+		if _, err := io.ReadFull(reader, result.HeaderBytes); err != nil {
+			return result, err
 		}
 	}
 	lengthBuffer := make([]byte, decoder.LengthFieldLength)
 	if _, err := io.ReadFull(reader, lengthBuffer); err != nil {
-		return nil, nil, err
+		return result, err
 	}
 
 	// length 之后的 内容长度
-	contentLength := int(decoder.ByteOrder.Uint32(lengthBuffer)) + decoder.LengthAdjustment
+	bodyLength := int(decoder.ByteOrder.Uint32(lengthBuffer)) + decoder.LengthAdjustment
 
-	contentBytes := make([]byte, contentLength)
-	if _, err := io.ReadFull(reader, contentBytes); err != nil {
-		return headerBytes, nil, err
+	result.BodyBytes = make([]byte, bodyLength)
+	if _, err := io.ReadFull(reader, result.BodyBytes); err != nil {
+		return result, err
 	}
 
-	return headerBytes, contentBytes, nil
+	result.FrameLength = len(result.HeaderBytes) + decoder.LengthFieldLength + len(result.BodyBytes)
+
+	return result, nil
 }
