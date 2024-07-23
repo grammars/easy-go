@@ -90,6 +90,7 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 			slog.Error("读取失败", "Error", err.Error())
 			break
 		}
+		slog.Info("本帧长度", cr.FrameLength, "HeaderBytes", cr.HeaderBytes, "HeaderBytes", cr.HeaderBytes)
 		//var buf [1024]byte
 		//n, err := reader.Read(buf[:])
 		//if err != nil && err != io.EOF {
