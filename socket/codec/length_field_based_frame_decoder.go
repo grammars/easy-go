@@ -37,6 +37,16 @@ func (decoder *LengthFieldBasedFrameDecoder) Decode(reader io.Reader) (CodecResu
 	bodyLength := int(decoder.ByteOrder.Uint32(lengthBuffer)) + decoder.LengthAdjustment
 	slog.Info("读取到bodyLength", "bodyLength", bodyLength)
 
+	calcFrameLength := bodyLength + decoder.LengthFieldOffset + decoder.LengthFieldLength
+	if calcFrameLength > decoder.MaxFrameLength {
+		slog.Error("数据帧溢出", "预计帧长度", calcFrameLength, "最大允许帧长度", decoder.MaxFrameLength)
+		leftAll, err := io.ReadAll(reader)
+		slog.Error("数据帧溢出后处理", "丢弃数据长度", len(leftAll))
+		if err != nil {
+			return result, err
+		}
+	}
+
 	result.BodyBytes = make([]byte, bodyLength)
 	if _, err := io.ReadFull(reader, result.BodyBytes); err != nil {
 		return result, err
