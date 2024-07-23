@@ -3,6 +3,7 @@ package socket
 import (
 	"fmt"
 	socket "github.com/grammars/easy-go/socket/codec"
+	"io"
 	"log/slog"
 	"net"
 	"time"
@@ -90,6 +91,19 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 			break
 		}
 		slog.Info("本帧长度", "FrameLength", cr.FrameLength)
+
+		if cr.Overflow {
+			slog.Info("即将执行数据帧溢出后处理")
+			err := conn.SetDeadline(time.Now().Add(time.Second * 1))
+			if err != nil {
+				break
+			}
+			leftAll, err := io.ReadAll(conn)
+			if err != nil {
+				break
+			}
+			slog.Info("读完剩余的", "leftAll长度", len(leftAll))
+		}
 
 		if srv.Monitor != nil {
 			srv.Monitor.BytesRead <- cr.FrameLength
