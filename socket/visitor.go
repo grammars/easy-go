@@ -10,6 +10,7 @@ import (
 
 type VisitorConnection interface {
 	RemoteAddr() net.Addr
+	Write(b []byte) (n int, err error)
 }
 
 // VisitorServer Visitor所属的server
@@ -20,7 +21,7 @@ type VisitorServer interface {
 type Visitor[VD any] struct {
 	index uint64
 	uid   uint64
-	conn  VisitorConnection
+	Conn  VisitorConnection
 	Data  *VD
 }
 
@@ -37,7 +38,7 @@ type VisitorMap[VD any] struct {
 }
 
 func (vm *VisitorMap[VD]) Append(conn VisitorConnection) *Visitor[VD] {
-	visitor := &Visitor[VD]{conn: conn}
+	visitor := &Visitor[VD]{Conn: conn}
 	visitor.index = atomic.AddUint64(&vm.history, 1)
 	visitor.uid = uint64(vm.server.GetStartTime().UnixMilli()) + visitor.index
 	vm.holder.Store(visitor.uid, visitor)
@@ -57,7 +58,7 @@ func (vm *VisitorMap[VD]) Print() {
 	vm.holder.Range(func(k, v any) bool {
 		uid := k.(uint64)
 		visitor := v.(*Visitor[VD])
-		slog.Info("打印visitorMap", "uid", uid, "index", visitor.index, "addr", visitor.conn.RemoteAddr())
+		slog.Info("打印visitorMap", "uid", uid, "index", visitor.index, "addr", visitor.Conn.RemoteAddr())
 		return true
 	})
 }

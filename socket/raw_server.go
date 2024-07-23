@@ -1,9 +1,8 @@
 package socket
 
 import (
-	"bufio"
 	"fmt"
-	"io"
+	socket "github.com/grammars/easy-go/socket/codec"
 	"log/slog"
 	"net"
 	"time"
@@ -83,31 +82,38 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 		}
 	}()
 	defer CloseConn(conn)
-	reader := bufio.NewReader(conn)
+	// reader := bufio.NewReader(conn)
+	decoder := socket.LengthFieldBasedFrameDecoder{}
 	for {
-		var buf [1024]byte
-		n, err := reader.Read(buf[:])
-		if err != nil && err != io.EOF {
+		headerBytes, contentBytes, err := decoder.Decode(conn)
+		if err != nil {
 			slog.Error("读取失败", "Error", err.Error())
 			break
 		}
+		n := len(headerBytes) + decoder.LengthFieldLength + len(contentBytes)
+		//var buf [1024]byte
+		//n, err := reader.Read(buf[:])
+		//if err != nil && err != io.EOF {
+		//	slog.Error("读取失败", "Error", err.Error())
+		//	break
+		//}
 		if srv.Monitor != nil {
 			srv.Monitor.BytesRead <- n
 		}
-		got := string(buf[:n])
-		if srv.PrintDetail {
-			slog.Info("接收到的数据", "数据", got)
-		}
-		nWrite, err := conn.Write([]byte("收到了：" + got))
-		if err != nil {
-			slog.Error("写给客户端失败", "Error", err.Error())
-			return
-		}
-		if srv.Monitor != nil {
-			srv.Monitor.BytesWrite <- nWrite
-		}
-		if srv.PrintDetail {
-			slog.Info("回复客户端", "nWrite", nWrite)
-		}
+		//got := string(buf[:n])
+		//if srv.PrintDetail {
+		//	slog.Info("接收到的数据", "数据", got)
+		//}
+		//nWrite, err := conn.Write([]byte("收到了：" + got))
+		//if err != nil {
+		//	slog.Error("写给客户端失败", "Error", err.Error())
+		//	return
+		//}
+		//if srv.Monitor != nil {
+		//	srv.Monitor.BytesWrite <- nWrite
+		//}
+		//if srv.PrintDetail {
+		//	slog.Info("回复客户端", "nWrite", nWrite)
+		//}
 	}
 }
