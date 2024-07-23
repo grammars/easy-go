@@ -83,8 +83,22 @@ func (srv *WebServer[VD]) GetStartTime() time.Time {
 	return srv.StartTime
 }
 
+type WebVisitorConnection struct {
+	conn *websocket.Conn
+}
+
+func (wvc *WebVisitorConnection) RemoteAddr() net.Addr {
+	return wvc.conn.RemoteAddr()
+}
+
+func (wvc *WebVisitorConnection) Write(b []byte) (n int, err error) {
+	e := wvc.conn.WriteMessage(websocket.BinaryMessage, b)
+	return len(b), e
+}
+
 func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *Visitor[VD] {
-	visitor := srv.VisitorMap.Append(conn)
+	wvc := &WebVisitorConnection{conn: conn}
+	visitor := srv.VisitorMap.Append(wvc)
 	slog.Info("Accept客户端", "uid", visitor.uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if srv.PrintDetail {
 		srv.VisitorMap.Print()
