@@ -13,11 +13,12 @@ type RawServer[VD any] struct {
 	Port        int
 	PrintDetail bool
 
-	StartTime  time.Time
-	Monitor    *Monitor
-	Handler    VisitorServerHandler[VD]
-	VisitorMap *VisitorMap[VD]
-	Decoder    socket.FrameDecoder
+	StartTime         time.Time
+	Monitor           *Monitor
+	Handler           VisitorServerHandler[VD]
+	VisitorMap        *VisitorMap[VD]
+	Decoder           socket.FrameDecoder
+	FrameBrokenDumpMs time.Duration // 当数据帧损坏时，倾倒时间(ms) 小于等于0则采取断开策略
 }
 
 func (srv *RawServer[VD]) Start() {
@@ -93,16 +94,27 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 		slog.Info("本帧长度", "FrameLength", cr.FrameLength)
 
 		if cr.Overflow {
-			slog.Info("即将执行数据帧溢出后处理")
-			err := conn.SetDeadline(time.Now().Add(time.Second * 1))
-			if err != nil {
+			brokenAction := "即将执行数据帧溢出后处理"
+			if srv.FrameBrokenDumpMs <= 0 {
+				slog.Info(brokenAction, "strategy", "FrameBrokenDumpMs <= 0 采取断开策略")
 				break
+			} else {
+				err := conn.SetDeadline(time.Now().Add(time.Millisecond * srv.FrameBrokenDumpMs))
+				if err != nil {
+					slog.Error("SetDeadline错误", "Error", err.Error())
+					break
+				}
+				_, err = io.ReadAll(conn)
+				if err != nil {
+					slog.Info(brokenAction, "strategy", fmt.Sprintf("倾倒%dms内的数据", srv.FrameBrokenDumpMs))
+					err := conn.SetDeadline(time.Time{})
+					if err != nil {
+						return
+					}
+					continue
+				}
 			}
-			leftAll, err := io.ReadAll(conn)
-			if err != nil {
-				break
-			}
-			slog.Info("读完剩余的", "leftAll长度", len(leftAll))
+
 		}
 
 		if srv.Monitor != nil {
