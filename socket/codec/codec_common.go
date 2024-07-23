@@ -9,5 +9,5 @@ type CodecResult struct {
 }
 
 type FrameDecoder interface {
-	Decode(reader io.Reader) (*CodecResult, error)
+	Decode(reader io.Reader) (CodecResult, error)
 }

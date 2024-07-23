@@ -1,6 +1,7 @@
 package socket
 
 import (
+	socket "github.com/grammars/easy-go/socket/codec"
 	"log/slog"
 	"net"
 	"sync"
@@ -27,7 +28,7 @@ type Visitor[VD any] struct {
 
 type VisitorServerHandler[VD any] interface {
 	OnConnect(visitor *Visitor[VD])
-	OnMessage(visitor *Visitor[VD], message *[]byte)
+	OnMessage(visitor *Visitor[VD], message socket.CodecResult)
 	OnDisconnect(visitor *Visitor[VD])
 }
 

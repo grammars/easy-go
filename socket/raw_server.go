@@ -94,6 +94,10 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 		if srv.Monitor != nil {
 			srv.Monitor.BytesRead <- cr.FrameLength
 		}
+
+		if srv.Handler != nil {
+			srv.Handler.OnMessage(visitor, cr)
+		}
 		//got := string(buf[:n])
 		//if srv.PrintDetail {
 		//	slog.Info("接收到的数据", "数据", got)

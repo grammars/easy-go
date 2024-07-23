@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/grammars/easy-go/best"
+	socket "github.com/grammars/easy-go/socket/codec"
 	"github.com/grammars/easy-go/sugar"
 	"io"
 	"log/slog"
@@ -152,11 +153,11 @@ func (srv *WebServer[VD]) wsHandler(c *gin.Context) {
 			}
 			break
 		}
+		messageLen := len(message)
 		if srv.Monitor != nil {
-			srv.Monitor.BytesRead <- len(message)
+			srv.Monitor.BytesRead <- messageLen
 		}
 		if srv.PrintDetail {
-			messageLen := len(message)
 			if messageLen < 24 {
 				slog.Info("收到WebSocket发来的消息", "message", fmt.Sprintf("%x", message))
 			} else {
@@ -165,7 +166,8 @@ func (srv *WebServer[VD]) wsHandler(c *gin.Context) {
 			}
 		}
 		if srv.Handler != nil {
-			srv.Handler.OnMessage(visitor, &message)
+			msg := socket.CodecResult{FrameLength: messageLen, BodyBytes: message}
+			srv.Handler.OnMessage(visitor, msg)
 		}
 		resp := []byte("俺收到了消息")
 		err = conn.WriteMessage(messageType, resp)
