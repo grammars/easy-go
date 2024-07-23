@@ -27,6 +27,7 @@ func (srv *RawServer[VD]) Start() {
 		slog.Error("启动监听失败", "Error", err.Error())
 		panic(err)
 	}
+	srv.VisitorMap = CreateVisitorMap[VD](srv)
 	var conn net.Conn
 	defer CloseConn(conn)
 	for {
