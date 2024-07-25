@@ -167,7 +167,7 @@ func (srv *WebServer[VD]) wsHandler(c *gin.Context) {
 		}
 		if srv.Handler != nil {
 			msg := socket.CodecResult{FrameLength: messageLen, BodyBytes: message}
-			srv.Handler.OnMessage(visitor, msg)
+			srv.Handler.OnMessage(visitor, msg, messageType)
 		}
 		resp := []byte("俺收到了消息")
 		err = conn.WriteMessage(messageType, resp)

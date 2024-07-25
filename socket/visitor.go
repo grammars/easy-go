@@ -28,7 +28,12 @@ type Visitor[VD any] struct {
 
 type VisitorServerHandler[VD any] interface {
 	OnConnect(visitor *Visitor[VD])
-	OnMessage(visitor *Visitor[VD], message socket.CodecResult)
+
+	// OnMessage 当接收到消息时
+	//
+	// messageType 消息类型, 当用于WebSocket的时候, 采用 https://www.rfc-editor.org/rfc/rfc6455.html#section-11.8 标准中的枚举;
+	// 自定义协议时, 暂不约定类型
+	OnMessage(visitor *Visitor[VD], message socket.CodecResult, messageType int)
 	OnDisconnect(visitor *Visitor[VD])
 }
 

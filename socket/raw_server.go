@@ -122,7 +122,7 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 		}
 
 		if srv.Handler != nil {
-			srv.Handler.OnMessage(visitor, cr)
+			srv.Handler.OnMessage(visitor, cr, 0)
 		}
 		//got := string(buf[:n])
 		//if srv.PrintDetail {
