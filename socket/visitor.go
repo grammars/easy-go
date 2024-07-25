@@ -12,6 +12,8 @@ import (
 type VisitorConnection interface {
 	RemoteAddr() net.Addr
 	Write(b []byte) (n int, err error)
+	// WriteSafe 协程安全的写入
+	WriteSafe(b []byte) (n int, err error)
 }
 
 // VisitorServer Visitor所属的server

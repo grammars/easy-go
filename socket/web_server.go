@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -85,7 +86,8 @@ func (srv *WebServer[VD]) GetStartTime() time.Time {
 }
 
 type WebVisitorConnection struct {
-	conn *websocket.Conn
+	conn       *websocket.Conn
+	WriteMutex sync.Mutex
 }
 
 func (wvc *WebVisitorConnection) RemoteAddr() net.Addr {
@@ -95,6 +97,12 @@ func (wvc *WebVisitorConnection) RemoteAddr() net.Addr {
 func (wvc *WebVisitorConnection) Write(b []byte) (n int, err error) {
 	e := wvc.conn.WriteMessage(websocket.BinaryMessage, b)
 	return len(b), e
+}
+
+func (wvc *WebVisitorConnection) WriteSafe(b []byte) (n int, err error) {
+	wvc.WriteMutex.Lock()
+	defer wvc.WriteMutex.Unlock()
+	return wvc.Write(b)
 }
 
 func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *Visitor[VD] {

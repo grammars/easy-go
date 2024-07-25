@@ -6,6 +6,7 @@ import (
 	"io"
 	"log/slog"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -52,8 +53,28 @@ func (srv *RawServer[VD]) GetStartTime() time.Time {
 	return srv.StartTime
 }
 
+type RawVisitorConnection struct {
+	conn       net.Conn
+	WriteMutex sync.Mutex
+}
+
+func (rvc *RawVisitorConnection) RemoteAddr() net.Addr {
+	return rvc.conn.RemoteAddr()
+}
+
+func (rvc *RawVisitorConnection) Write(b []byte) (n int, err error) {
+	return rvc.Write(b)
+}
+
+func (rvc *RawVisitorConnection) WriteSafe(b []byte) (n int, err error) {
+	rvc.WriteMutex.Lock()
+	defer rvc.WriteMutex.Unlock()
+	return rvc.Write(b)
+}
+
 func (srv *RawServer[VD]) appendVisitor(conn net.Conn) *Visitor[VD] {
-	visitor := srv.VisitorMap.Append(conn)
+	rvc := &RawVisitorConnection{conn: conn}
+	visitor := srv.VisitorMap.Append(rvc)
 	slog.Info("Accept客户端", "uid", visitor.uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if srv.PrintDetail {
 		srv.VisitorMap.Print()
