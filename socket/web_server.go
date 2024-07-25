@@ -158,12 +158,7 @@ func (srv *WebServer[VD]) wsHandler(c *gin.Context) {
 			srv.Monitor.BytesRead <- messageLen
 		}
 		if srv.PrintDetail {
-			if messageLen < 24 {
-				slog.Info("收到WebSocket发来的消息", "message", fmt.Sprintf("%x", message))
-			} else {
-				partMessage := message[:24]
-				slog.Info("收到WebSocket发来的消息", "message", fmt.Sprintf("%x len=%d", partMessage, messageLen))
-			}
+			slog.Info("收到WebSocket发来的消息", "message", SprintWebSocketFrame(messageType, message, 24))
 		}
 		if srv.Handler != nil {
 			msg := socket.CodecResult{FrameLength: messageLen, BodyBytes: message}

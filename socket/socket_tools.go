@@ -169,3 +169,22 @@ func (sn *SumNum[T]) DeltaTimes() int {
 	sn.LastTimes = sn.Times
 	return d
 }
+
+func SprintWebSocketFrame(messageType int, message []byte, maxLen int) string {
+	var str string
+	switch messageType {
+	case websocket.TextMessage:
+		str = "[Text Frame]" + string(message)[:maxLen]
+	case websocket.BinaryMessage:
+		str = fmt.Sprintf("[Binary Frame]%x", message[:maxLen])
+	case websocket.CloseMessage:
+		str = "[Connection Close Frame]"
+	case websocket.PingMessage:
+		str = "[Ping Frame]"
+	case websocket.PongMessage:
+		str = "[Pong Frame]"
+	default:
+		str = fmt.Sprintf("[Unknown Message]messageType=%d", messageType)
+	}
+	return str
+}
