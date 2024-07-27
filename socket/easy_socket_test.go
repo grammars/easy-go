@@ -10,13 +10,14 @@ import (
 
 func TestRawServer(t *testing.T) {
 	t.Log("TestRawServer")
-	srv := &RawServer[any]{Port: 6677, Monitor: CreateMonitorStart("测试", 5000)}
+	decoder := &LineBasedFrameDecoder[any]{}
+	srv := &RawServer[any]{Port: 6677, Monitor: CreateMonitorStart("测试", 5000), Decoder: decoder}
 	srv.Start()
 }
 
 func TestRawClient(t *testing.T) {
 	t.Log("TestRawClient")
-	TestManyRawClient("192.168.11.11", 6677, 100)
+	TestManyRawClient("127.0.0.1", 6677, 1)
 	time.Sleep(1800 * time.Second)
 }
 

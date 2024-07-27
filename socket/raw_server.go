@@ -2,7 +2,6 @@ package socket
 
 import (
 	"fmt"
-	socket "github.com/grammars/easy-go/socket/codec"
 	"io"
 	"log/slog"
 	"net"
@@ -18,7 +17,7 @@ type RawServer[VD any] struct {
 	Monitor           *Monitor
 	Handler           VisitorServerHandler[VD]
 	VisitorMap        *VisitorMap[VD]
-	Decoder           socket.FrameDecoder
+	Decoder           FrameDecoder[VD]
 	FrameBrokenDumpMs time.Duration // 当数据帧损坏时，倾倒时间(ms) 小于等于0则采取断开策略
 }
 
@@ -107,7 +106,7 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 	}()
 	defer CloseConn(conn)
 	for {
-		cr, err := srv.Decoder.Decode(conn)
+		cr, err := srv.Decoder.Decode(visitor, conn)
 		if err != nil {
 			slog.Error("读取失败", "Error", err.Error())
 			break

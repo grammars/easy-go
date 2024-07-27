@@ -1,7 +1,6 @@
 package socket
 
 import (
-	socket "github.com/grammars/easy-go/socket/codec"
 	"log/slog"
 	"net"
 	"sync"
@@ -26,6 +25,7 @@ type Visitor[VD any] struct {
 	uid   uint64
 	Conn  VisitorConnection
 	Data  *VD
+	Ext   any
 }
 
 type VisitorServerHandler[VD any] interface {
@@ -35,7 +35,7 @@ type VisitorServerHandler[VD any] interface {
 	//
 	// messageType 消息类型, 当用于WebSocket的时候, 采用 https://www.rfc-editor.org/rfc/rfc6455.html#section-11.8 标准中的枚举;
 	// 自定义协议时, 暂不约定类型
-	OnMessage(visitor *Visitor[VD], message socket.CodecResult, messageType int)
+	OnMessage(visitor *Visitor[VD], message CodecResult, messageType int)
 	OnDisconnect(visitor *Visitor[VD])
 }
 

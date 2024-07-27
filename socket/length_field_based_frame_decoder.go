@@ -7,7 +7,7 @@ import (
 	"log/slog"
 )
 
-type LengthFieldBasedFrameDecoder struct {
+type LengthFieldBasedFrameDecoder[VD any] struct {
 	ByteOrder         binary.ByteOrder
 	MaxFrameLength    int
 	LengthFieldOffset int
@@ -16,8 +16,8 @@ type LengthFieldBasedFrameDecoder struct {
 	//InitialBytesToStrip int 不需要该字段，因为此处设计将以length为中心 切割成 2部分
 }
 
-func (decoder *LengthFieldBasedFrameDecoder) Decode(reader io.Reader) (CodecResult, error) {
-	slog.Info("准备解码")
+func (decoder *LengthFieldBasedFrameDecoder[VD]) Decode(visitor Visitor[VD], reader io.Reader) (CodecResult, error) {
+	slog.Info("LengthFieldBasedFrameDecoder准备解码")
 	result := CodecResult{}
 	if decoder.LengthFieldOffset > 0 {
 		result.HeaderBytes = make([]byte, decoder.LengthFieldOffset)
