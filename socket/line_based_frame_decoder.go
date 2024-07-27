@@ -25,7 +25,12 @@ func (decoder *LineBasedFrameDecoder[VD]) Decode(visitor *Visitor[VD], reader io
 			return result, errors.New("类型转化失败 visitor.Ext.(*bufio.Scanner)")
 		}
 	}
-	result.BodyBytes = []byte(scanner.Text())
-	result.FrameLength = len(result.BodyBytes)
-	return result, nil
+	if scanner.Scan() {
+		text := scanner.Text()
+		slog.Info("收到文本", "text", text)
+		result.BodyBytes = []byte(text)
+		result.FrameLength = len(result.BodyBytes)
+		return result, nil
+	}
+	return result, errors.New("no content for Scan")
 }

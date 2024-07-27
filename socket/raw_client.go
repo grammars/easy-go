@@ -37,7 +37,7 @@ func (cli *RawClient) Start() {
 	}
 
 	for i := 0; i < 99999999; i++ {
-		nWrite, err := conn.Write([]byte(fmt.Sprintf("[%s]hello world(%d)", cli.Name, i)))
+		nWrite, err := conn.Write([]byte(fmt.Sprintf("[%s]hello world(%d)\n", cli.Name, i)))
 		if err != nil {
 			fmt.Printf("发送消息失败:%v\n", err)
 			return
