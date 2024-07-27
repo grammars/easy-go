@@ -16,7 +16,7 @@ type LengthFieldBasedFrameDecoder[VD any] struct {
 	//InitialBytesToStrip int 不需要该字段，因为此处设计将以length为中心 切割成 2部分
 }
 
-func (decoder *LengthFieldBasedFrameDecoder[VD]) Decode(visitor Visitor[VD], reader io.Reader) (CodecResult, error) {
+func (decoder *LengthFieldBasedFrameDecoder[VD]) Decode(visitor *Visitor[VD], reader io.Reader) (CodecResult, error) {
 	slog.Info("LengthFieldBasedFrameDecoder准备解码")
 	result := CodecResult{}
 	if decoder.LengthFieldOffset > 0 {
