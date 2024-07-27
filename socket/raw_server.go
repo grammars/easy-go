@@ -63,7 +63,7 @@ func (rvc *RawVisitorConnection) RemoteAddr() net.Addr {
 }
 
 func (rvc *RawVisitorConnection) Write(b []byte) (n int, err error) {
-	return rvc.Write(b)
+	return rvc.conn.Write(b)
 }
 
 func (rvc *RawVisitorConnection) WriteSafe(b []byte) (n int, err error) {
