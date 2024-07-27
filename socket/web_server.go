@@ -107,7 +107,7 @@ func (wvc *WebVisitorConnection) WriteSafe(b []byte) (n int, err error) {
 func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *Visitor[VD] {
 	wvc := &WebVisitorConnection{conn: conn}
 	visitor := srv.VisitorMap.Append(wvc)
-	slog.Info("Accept客户端", "uid", visitor.uid, "index", visitor.index, "addr", conn.RemoteAddr())
+	slog.Info("Accept客户端", "Uid", visitor.Uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if srv.PrintDetail {
 		srv.VisitorMap.Print()
 	}
@@ -136,7 +136,7 @@ func (srv *WebServer[VD]) wsHandler(c *gin.Context) {
 	if srv.Handler != nil {
 		srv.Handler.OnConnect(visitor)
 	}
-	defer srv.removeVisitor(visitor.uid)
+	defer srv.removeVisitor(visitor.Uid)
 	defer func() {
 		if srv.Handler != nil {
 			srv.Handler.OnDisconnect(visitor)

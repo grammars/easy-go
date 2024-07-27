@@ -22,7 +22,7 @@ type VisitorServer interface {
 
 type Visitor[VD any] struct {
 	index uint64
-	uid   uint64
+	Uid   uint64
 	Conn  VisitorConnection
 	Data  *VD
 	Ext   any
@@ -48,8 +48,8 @@ type VisitorMap[VD any] struct {
 func (vm *VisitorMap[VD]) Append(conn VisitorConnection) *Visitor[VD] {
 	visitor := &Visitor[VD]{Conn: conn}
 	visitor.index = atomic.AddUint64(&vm.history, 1)
-	visitor.uid = uint64(vm.server.GetStartTime().UnixMilli()) + visitor.index
-	vm.holder.Store(visitor.uid, visitor)
+	visitor.Uid = uint64(vm.server.GetStartTime().UnixMilli()) + visitor.index
+	vm.holder.Store(visitor.Uid, visitor)
 	return visitor
 }
 
@@ -66,7 +66,7 @@ func (vm *VisitorMap[VD]) Print() {
 	vm.holder.Range(func(k, v any) bool {
 		uid := k.(uint64)
 		visitor := v.(*Visitor[VD])
-		slog.Info("打印visitorMap", "uid", uid, "index", visitor.index, "addr", visitor.Conn.RemoteAddr())
+		slog.Info("打印visitorMap", "Uid", uid, "index", visitor.index, "addr", visitor.Conn.RemoteAddr())
 		return true
 	})
 }

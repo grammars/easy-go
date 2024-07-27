@@ -74,7 +74,7 @@ func (rvc *RawVisitorConnection) WriteSafe(b []byte) (n int, err error) {
 func (srv *RawServer[VD]) appendVisitor(conn net.Conn) *Visitor[VD] {
 	rvc := &RawVisitorConnection{conn: conn}
 	visitor := srv.VisitorMap.Append(rvc)
-	slog.Info("Accept客户端", "uid", visitor.uid, "index", visitor.index, "addr", conn.RemoteAddr())
+	slog.Info("Accept客户端", "Uid", visitor.Uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if srv.PrintDetail {
 		srv.VisitorMap.Print()
 	}
@@ -98,7 +98,7 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 	if srv.Handler != nil {
 		srv.Handler.OnConnect(visitor)
 	}
-	defer srv.removeVisitor(visitor.uid)
+	defer srv.removeVisitor(visitor.Uid)
 	defer func() {
 		if srv.Handler != nil {
 			srv.Handler.OnDisconnect(visitor)
