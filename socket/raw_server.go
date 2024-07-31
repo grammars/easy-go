@@ -52,27 +52,32 @@ func (srv *RawServer[VD]) GetStartTime() time.Time {
 	return srv.StartTime
 }
 
-type RawVisitorConnection struct {
+type RawVisitorConnection[VD any] struct {
 	conn       net.Conn
 	WriteMutex sync.Mutex
+	srv        *RawServer[VD]
 }
 
-func (rvc *RawVisitorConnection) RemoteAddr() net.Addr {
+func (rvc *RawVisitorConnection[VD]) RemoteAddr() net.Addr {
 	return rvc.conn.RemoteAddr()
 }
 
-func (rvc *RawVisitorConnection) Write(b []byte) (n int, err error) {
-	return rvc.conn.Write(b)
+func (rvc *RawVisitorConnection[VD]) Write(b []byte) (int, error) {
+	n, err := rvc.conn.Write(b)
+	if rvc.srv.Monitor != nil {
+		rvc.srv.Monitor.BytesWrite <- n
+	}
+	return n, err
 }
 
-func (rvc *RawVisitorConnection) WriteSafe(b []byte) (n int, err error) {
+func (rvc *RawVisitorConnection[VD]) WriteSafe(b []byte) (int, error) {
 	rvc.WriteMutex.Lock()
 	defer rvc.WriteMutex.Unlock()
 	return rvc.Write(b)
 }
 
 func (srv *RawServer[VD]) appendVisitor(conn net.Conn) *Visitor[VD] {
-	rvc := &RawVisitorConnection{conn: conn}
+	rvc := &RawVisitorConnection[VD]{conn: conn, srv: srv}
 	visitor := srv.VisitorMap.Append(rvc)
 	slog.Info("Accept客户端", "Uid", visitor.Uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if srv.PrintDetail {
@@ -144,20 +149,6 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 		if srv.Handler != nil {
 			srv.Handler.OnMessage(visitor, cr, 0)
 		}
-		//got := string(buf[:n])
-		//if srv.PrintDetail {
-		//	slog.Info("接收到的数据", "数据", got)
-		//}
-		//nWrite, err := conn.Write([]byte("收到了：" + got))
-		//if err != nil {
-		//	slog.Error("写给客户端失败", "Error", err.Error())
-		//	return
-		//}
-		//if srv.Monitor != nil {
-		//	srv.Monitor.BytesWrite <- nWrite
-		//}
-		//if srv.PrintDetail {
-		//	slog.Info("回复客户端", "nWrite", nWrite)
-		//}
+
 	}
 }

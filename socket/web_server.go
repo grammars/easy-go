@@ -84,28 +84,33 @@ func (srv *WebServer[VD]) GetStartTime() time.Time {
 	return srv.StartTime
 }
 
-type WebVisitorConnection struct {
+type WebVisitorConnection[VD any] struct {
 	conn       *websocket.Conn
 	WriteMutex sync.Mutex
+	srv        *WebServer[VD]
 }
 
-func (wvc *WebVisitorConnection) RemoteAddr() net.Addr {
+func (wvc *WebVisitorConnection[VD]) RemoteAddr() net.Addr {
 	return wvc.conn.RemoteAddr()
 }
 
-func (wvc *WebVisitorConnection) Write(b []byte) (n int, err error) {
+func (wvc *WebVisitorConnection[VD]) Write(b []byte) (int, error) {
 	e := wvc.conn.WriteMessage(websocket.BinaryMessage, b)
-	return len(b), e
+	nBytes := len(b)
+	if wvc.srv.Monitor != nil {
+		wvc.srv.Monitor.BytesWrite <- nBytes
+	}
+	return nBytes, e
 }
 
-func (wvc *WebVisitorConnection) WriteSafe(b []byte) (n int, err error) {
+func (wvc *WebVisitorConnection[VD]) WriteSafe(b []byte) (int, error) {
 	wvc.WriteMutex.Lock()
 	defer wvc.WriteMutex.Unlock()
 	return wvc.Write(b)
 }
 
 func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *Visitor[VD] {
-	wvc := &WebVisitorConnection{conn: conn}
+	wvc := &WebVisitorConnection[VD]{conn: conn, srv: srv}
 	visitor := srv.VisitorMap.Append(wvc)
 	slog.Info("Accept客户端", "Uid", visitor.Uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if srv.PrintDetail {
@@ -171,12 +176,5 @@ func (srv *WebServer[VD]) wsHandler(c *gin.Context) {
 			msg := CodecResult{FrameLength: messageLen, BodyBytes: message}
 			srv.Handler.OnMessage(visitor, msg, messageType)
 		}
-		resp := []byte("俺收到了消息")
-		err = conn.WriteMessage(messageType, resp)
-		if err != nil {
-			slog.Error("Error write message from websocket:", err)
-			break
-		}
-		srv.Monitor.BytesWrite <- len(resp)
 	}
 }
