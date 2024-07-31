@@ -62,6 +62,14 @@ func (vm *VisitorMap[VD]) Remove(visitorUid uint64) *Visitor[VD] {
 	return visitor.(*Visitor[VD])
 }
 
+func (vm *VisitorMap[VD]) Get(visitorUid uint64) *Visitor[VD] {
+	visitor, ok := vm.holder.Load(visitorUid)
+	if ok {
+		return visitor.(*Visitor[VD])
+	}
+	return nil
+}
+
 func (vm *VisitorMap[VD]) Print() {
 	vm.holder.Range(func(k, v any) bool {
 		uid := k.(uint64)
