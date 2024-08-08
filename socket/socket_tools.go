@@ -37,7 +37,7 @@ var webConnCloseSum = 0
 func CloseWebConn(conn *websocket.Conn) {
 	err := conn.Close()
 	if err != nil {
-		slog.Error("关闭webSocket连接 失败", err)
+		slog.Error("关闭webSocket连接 失败", "Error", err.Error())
 	} else {
 		webConnCloseSum++
 		if LogLevel <= 0 {

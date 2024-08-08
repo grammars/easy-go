@@ -159,7 +159,7 @@ func (srv *WebServer[VD]) wsHandler(c *gin.Context) {
 				if errors.As(err, &noe) {
 					slog.Warn("客户端已断开(net.OpError)", "Op", noe.Op, "Error", noe.Error())
 				} else {
-					slog.Error("Error read message from websocket:", err)
+					slog.Error("Error read message from websocket:", "Error", err.Error())
 				}
 			}
 			break
