@@ -78,8 +78,8 @@ func (rvc *RawVisitorConnection[VD]) WriteSafe(b []byte) (int, error) {
 func (srv *RawServer[VD]) appendVisitor(conn net.Conn) *Visitor[VD] {
 	rvc := &RawVisitorConnection[VD]{conn: conn, srv: srv}
 	visitor := srv.VisitorMap.Append(rvc)
-	slog.Info("Accept客户端", "Uid", visitor.Uid, "index", visitor.index, "addr", conn.RemoteAddr())
 	if LogLevel <= 0 {
+		slog.Info("raw_server.go Accept访问者", "uid", visitor.Uid, "index", visitor.index, "addr", conn.RemoteAddr())
 		srv.VisitorMap.Print()
 	}
 	if srv.Monitor != nil {
@@ -90,8 +90,8 @@ func (srv *RawServer[VD]) appendVisitor(conn net.Conn) *Visitor[VD] {
 
 func (srv *RawServer[VD]) removeVisitor(visitorUid uint64) {
 	srv.VisitorMap.Remove(visitorUid)
-	slog.Info("Remove客户端", "visitorUid", visitorUid)
 	if LogLevel <= 0 {
+		slog.Info("raw_server.go Remove访问者", "visitorUid", visitorUid)
 		srv.VisitorMap.Print()
 	}
 	srv.Monitor.InvalidNum <- 1

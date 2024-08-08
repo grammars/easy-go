@@ -17,7 +17,6 @@ import (
 
 type WebServer[VD any] struct {
 	Port            int
-	PrintDetail     bool
 	WsPath          string
 	ReadBufferSize  int
 	WriteBufferSize int
@@ -112,8 +111,8 @@ func (wvc *WebVisitorConnection[VD]) WriteSafe(b []byte) (int, error) {
 func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *Visitor[VD] {
 	wvc := &WebVisitorConnection[VD]{conn: conn, srv: srv}
 	visitor := srv.VisitorMap.Append(wvc)
-	slog.Info("Accept客户端", "Uid", visitor.Uid, "index", visitor.index, "addr", conn.RemoteAddr())
-	if srv.PrintDetail {
+	if LogLevel <= 0 {
+		slog.Info("web_server.go Accept访问者", "uid", visitor.Uid, "index", visitor.index, "addr", conn.RemoteAddr())
 		srv.VisitorMap.Print()
 	}
 	if srv.Monitor != nil {
@@ -124,8 +123,8 @@ func (srv *WebServer[VD]) appendVisitor(conn *websocket.Conn) *Visitor[VD] {
 
 func (srv *WebServer[VD]) removeVisitor(visitorUid uint64) {
 	srv.VisitorMap.Remove(visitorUid)
-	slog.Info("Remove客户端", "visitorUid", visitorUid)
-	if srv.PrintDetail {
+	if LogLevel <= 0 {
+		slog.Info("web_server.go Remove访问者", "visitorUid", visitorUid)
 		srv.VisitorMap.Print()
 	}
 	srv.Monitor.InvalidNum <- 1
@@ -169,8 +168,8 @@ func (srv *WebServer[VD]) wsHandler(c *gin.Context) {
 		if srv.Monitor != nil {
 			srv.Monitor.BytesRead <- messageLen
 		}
-		if srv.PrintDetail {
-			slog.Info("收到WebSocket发来的消息", "message", SprintWebSocketFrame(messageType, message, 24))
+		if LogLevel <= 0 {
+			slog.Info("web_server.go 收到WebSocket发来的消息", "message", SprintWebSocketFrame(messageType, message, 24))
 		}
 		if srv.Handler != nil {
 			msg := CodecResult{FrameLength: messageLen, BodyBytes: message}
