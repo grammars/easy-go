@@ -25,17 +25,25 @@ func (decoder *LengthFieldBasedFrameDecoder[VD]) Decode(visitor *Visitor[VD], re
 			return result, err
 		}
 	}
-	slog.Info("读取到HeaderBytes", "HeaderBytes", fmt.Sprintf("%x", result.HeaderBytes))
+	if LogLevel <= 0 {
+		slog.Info("读取到HeaderBytes", "HeaderBytes", fmt.Sprintf("%x", result.HeaderBytes))
+	}
 
 	lengthBuffer := make([]byte, decoder.LengthFieldLength)
 	if _, err := io.ReadFull(reader, lengthBuffer); err != nil {
 		return result, err
 	}
 
-	slog.Info("读取到lengthBuffer")
+	if LogLevel <= 0 {
+		slog.Info("读取到lengthBuffer")
+	}
+
 	// length 之后的 内容长度
 	bodyLength := int(decoder.ByteOrder.Uint32(lengthBuffer)) + decoder.LengthAdjustment
-	slog.Info("读取到bodyLength", "bodyLength", bodyLength)
+
+	if LogLevel <= 0 {
+		slog.Info("读取到bodyLength", "bodyLength", bodyLength)
+	}
 
 	calcFrameLength := bodyLength + decoder.LengthFieldOffset + decoder.LengthFieldLength
 	if calcFrameLength > decoder.MaxFrameLength {
@@ -49,7 +57,9 @@ func (decoder *LengthFieldBasedFrameDecoder[VD]) Decode(visitor *Visitor[VD], re
 		return result, err
 	}
 
-	slog.Info("读取到BodyBytes", "BodyBytes", fmt.Sprintf("%x", result.BodyBytes))
+	if LogLevel <= 0 {
+		slog.Info("读取到BodyBytes", "BodyBytes", fmt.Sprintf("%x", result.BodyBytes))
+	}
 
 	result.FrameLength = len(result.HeaderBytes) + decoder.LengthFieldLength + len(result.BodyBytes)
 

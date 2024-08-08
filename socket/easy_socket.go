@@ -5,7 +5,10 @@ import (
 	"time"
 )
 
+var LogLevel = 0
+
 func TestManyRawClient(host string, port int, clientNum int) []*RawClient {
+	LogLevel = 3
 	monitor := CreateMonitorStart("🍚", 5000)
 	var clients []*RawClient
 	for i := 0; i < clientNum; i++ {
