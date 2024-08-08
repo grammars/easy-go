@@ -10,8 +10,7 @@ import (
 )
 
 type RawServer[VD any] struct {
-	Port        int
-	PrintDetail bool
+	Port int
 
 	StartTime         time.Time
 	Monitor           *Monitor
@@ -41,8 +40,8 @@ func (srv *RawServer[VD]) Start() {
 			}
 			continue
 		}
-		if srv.PrintDetail {
-			slog.Info("有一个客户端连接我成功了", "RemoteAddr", conn.RemoteAddr())
+		if LogLevel <= 1 {
+			slog.Info("raw_server.go 客户端连接成功", "RemoteAddr", conn.RemoteAddr())
 		}
 		go ReadWriteAsServer(conn, srv)
 	}
@@ -80,7 +79,7 @@ func (srv *RawServer[VD]) appendVisitor(conn net.Conn) *Visitor[VD] {
 	rvc := &RawVisitorConnection[VD]{conn: conn, srv: srv}
 	visitor := srv.VisitorMap.Append(rvc)
 	slog.Info("Accept客户端", "Uid", visitor.Uid, "index", visitor.index, "addr", conn.RemoteAddr())
-	if srv.PrintDetail {
+	if LogLevel <= 0 {
 		srv.VisitorMap.Print()
 	}
 	if srv.Monitor != nil {
@@ -92,7 +91,7 @@ func (srv *RawServer[VD]) appendVisitor(conn net.Conn) *Visitor[VD] {
 func (srv *RawServer[VD]) removeVisitor(visitorUid uint64) {
 	srv.VisitorMap.Remove(visitorUid)
 	slog.Info("Remove客户端", "visitorUid", visitorUid)
-	if srv.PrintDetail {
+	if LogLevel <= 0 {
 		srv.VisitorMap.Print()
 	}
 	srv.Monitor.InvalidNum <- 1
@@ -116,7 +115,9 @@ func ReadWriteAsServer[VD any](conn net.Conn, srv *RawServer[VD]) {
 			slog.Error("读取失败", "Error", err.Error())
 			break
 		}
-		slog.Info("本帧长度", "FrameLength", cr.FrameLength)
+		if LogLevel <= 0 {
+			slog.Info("本帧长度", "FrameLength", cr.FrameLength)
+		}
 
 		if cr.Overflow {
 			brokenAction := "即将执行数据帧溢出后处理"

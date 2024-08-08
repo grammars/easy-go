@@ -17,7 +17,9 @@ type LengthFieldBasedFrameDecoder[VD any] struct {
 }
 
 func (decoder *LengthFieldBasedFrameDecoder[VD]) Decode(visitor *Visitor[VD], reader io.Reader) (CodecResult, error) {
-	slog.Info("LengthFieldBasedFrameDecoder准备解码")
+	if LogLevel <= 0 {
+		slog.Info("LengthFieldBasedFrameDecoder准备解码")
+	}
 	result := CodecResult{}
 	if decoder.LengthFieldOffset > 0 {
 		result.HeaderBytes = make([]byte, decoder.LengthFieldOffset)
