@@ -3,6 +3,8 @@ package tool
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
+	"math"
 )
 
 type ByteArray struct {
@@ -39,7 +41,7 @@ func (ins *ByteArray) Available() int {
 	return ins.length - ins.readLength
 }
 
-func (ins *ByteArray) AfterRead(err error, n int) error {
+func (ins *ByteArray) __AfterWrite__(err error, n int) error {
 	if err == nil {
 		ins.length += n
 	}
@@ -47,7 +49,7 @@ func (ins *ByteArray) AfterRead(err error, n int) error {
 }
 
 func (ins *ByteArray) WriteByte(value byte) error {
-	return ins.AfterRead(ins.buf.WriteByte(value), 1)
+	return ins.__AfterWrite__(ins.buf.WriteByte(value), 1)
 }
 
 func (ins *ByteArray) ReadByte() (byte, error) {
@@ -60,7 +62,7 @@ func (ins *ByteArray) ReadByte() (byte, error) {
 
 // WriteUint8 type byte = uint8
 func (ins *ByteArray) WriteUint8(value uint8) error {
-	return ins.AfterRead(ins.buf.WriteByte(value), 1)
+	return ins.__AfterWrite__(ins.buf.WriteByte(value), 1)
 }
 
 func (ins *ByteArray) ReadUint8() (uint8, error) {
@@ -72,7 +74,7 @@ func (ins *ByteArray) ReadUint8() (uint8, error) {
 }
 
 func (ins *ByteArray) WriteInt8(value int8) error {
-	return ins.AfterRead(ins.buf.WriteByte(byte(value)), 1)
+	return ins.__AfterWrite__(ins.buf.WriteByte(byte(value)), 1)
 }
 
 func (ins *ByteArray) ReadInt8() (int8, error) {
@@ -97,7 +99,7 @@ func (ins *ByteArray) WriteUint16(value uint16) error {
 	bs := make([]byte, 2)
 	ins.byteOrder.PutUint16(bs, value)
 	_, err := ins.buf.Write(bs)
-	return ins.AfterRead(err, 2)
+	return ins.__AfterWrite__(err, 2)
 }
 
 func (ins *ByteArray) ReadUint16() (uint16, error) {
@@ -108,7 +110,7 @@ func (ins *ByteArray) WriteInt16(value int16) error {
 	bs := make([]byte, 2)
 	ins.byteOrder.PutUint16(bs, uint16(value))
 	_, err := ins.buf.Write(bs)
-	return ins.AfterRead(err, 2)
+	return ins.__AfterWrite__(err, 2)
 }
 
 func (ins *ByteArray) ReadInt16() (int16, error) {
@@ -119,7 +121,7 @@ func (ins *ByteArray) WriteUint32(value uint32) error {
 	bs := make([]byte, 4)
 	ins.byteOrder.PutUint32(bs, value)
 	_, err := ins.buf.Write(bs)
-	return ins.AfterRead(err, 4)
+	return ins.__AfterWrite__(err, 4)
 }
 
 func (ins *ByteArray) ReadUint32() (uint32, error) {
@@ -130,7 +132,7 @@ func (ins *ByteArray) WriteInt32(value int32) error {
 	bs := make([]byte, 4)
 	ins.byteOrder.PutUint32(bs, uint32(value))
 	_, err := ins.buf.Write(bs)
-	return ins.AfterRead(err, 4)
+	return ins.__AfterWrite__(err, 4)
 }
 
 func (ins *ByteArray) ReadInt32() (int32, error) {
@@ -141,7 +143,7 @@ func (ins *ByteArray) WriteUint64(value uint64) error {
 	bs := make([]byte, 8)
 	ins.byteOrder.PutUint64(bs, value)
 	_, err := ins.buf.Write(bs)
-	return ins.AfterRead(err, 8)
+	return ins.__AfterWrite__(err, 8)
 }
 
 func (ins *ByteArray) ReadUint64() (uint64, error) {
@@ -152,7 +154,7 @@ func (ins *ByteArray) WriteInt64(value int64) error {
 	bs := make([]byte, 8)
 	ins.byteOrder.PutUint64(bs, uint64(value))
 	_, err := ins.buf.Write(bs)
-	return ins.AfterRead(err, 8)
+	return ins.__AfterWrite__(err, 8)
 }
 
 func (ins *ByteArray) ReadInt64() (int64, error) {
@@ -160,7 +162,7 @@ func (ins *ByteArray) ReadInt64() (int64, error) {
 }
 
 func (ins *ByteArray) WriteFloat32(value float32) error {
-	return ins.AfterRead(binary.Write(ins.buf, ins.byteOrder, value), 4)
+	return ins.__AfterWrite__(binary.Write(ins.buf, ins.byteOrder, value), 4)
 }
 
 func (ins *ByteArray) ReadFloat32() (float32, error) {
@@ -168,7 +170,7 @@ func (ins *ByteArray) ReadFloat32() (float32, error) {
 }
 
 func (ins *ByteArray) WriteFloat64(value float64) error {
-	return ins.AfterRead(binary.Write(ins.buf, ins.byteOrder, value), 8)
+	return ins.__AfterWrite__(binary.Write(ins.buf, ins.byteOrder, value), 8)
 }
 
 func (ins *ByteArray) ReadFloat64() (float64, error) {
@@ -182,7 +184,7 @@ func (ins *ByteArray) WriteBool(value bool) error {
 	} else {
 		err = ins.buf.WriteByte(0)
 	}
-	return ins.AfterRead(err, 1)
+	return ins.__AfterWrite__(err, 1)
 }
 
 func (ins *ByteArray) ReadBool() (bool, error) {
@@ -201,10 +203,89 @@ func (ins *ByteArray) WriteInt(value int) error {
 	bs := make([]byte, 4)
 	ins.byteOrder.PutUint32(bs, uint32(value))
 	_, err := ins.buf.Write(bs)
-	return ins.AfterRead(err, 4)
+	return ins.__AfterWrite__(err, 4)
 }
 
 func (ins *ByteArray) ReadInt() (int, error) {
 	u, err := __ReadTemplate__[uint32](ins, 4)
 	return int(u), err
+}
+
+func (ins *ByteArray) WriteString(str string) error {
+	bs := []byte(str)
+	n, err := ins.buf.Write(bs)
+	return ins.__AfterWrite__(err, n)
+}
+
+func (ins *ByteArray) ReadString(strLen int) (string, error) {
+	bs := make([]byte, strLen)
+	n, err := ins.buf.Read(bs)
+	ins.readLength += n
+	return string(bs[:n]), err
+}
+
+func (ins *ByteArray) WriteStringUint8(str string) error {
+	bs := []byte(str)
+	strLen := len(bs)
+	if strLen > math.MaxUint8 {
+		return errors.New("string too long")
+	}
+	err := ins.WriteUint8(uint8(strLen))
+	n, err := ins.buf.Write(bs)
+	return ins.__AfterWrite__(err, n)
+}
+
+func (ins *ByteArray) WriteStringUint16(str string) error {
+	bs := []byte(str)
+	strLen := len(bs)
+	if strLen > math.MaxUint16 {
+		return errors.New("string too long")
+	}
+	err := ins.WriteUint16(uint16(strLen))
+	n, err := ins.buf.Write(bs)
+	return ins.__AfterWrite__(err, n)
+}
+
+func (ins *ByteArray) WriteStringUint32(str string) error {
+	bs := []byte(str)
+	strLen := len(bs)
+	if strLen > math.MaxUint32 {
+		return errors.New("string too long")
+	}
+	err := ins.WriteUint32(uint32(strLen))
+	n, err := ins.buf.Write(bs)
+	return ins.__AfterWrite__(err, n)
+}
+
+func (ins *ByteArray) ReadStringUint8() (string, error) {
+	strLen, err := ins.ReadUint8()
+	if err != nil {
+		return "", err
+	}
+	bs := make([]byte, strLen)
+	n, err := ins.buf.Read(bs)
+	ins.readLength += n
+	return string(bs[:n]), err
+}
+
+func (ins *ByteArray) ReadStringUint16() (string, error) {
+	strLen, err := ins.ReadUint16()
+	if err != nil {
+		return "", err
+	}
+	bs := make([]byte, strLen)
+	n, err := ins.buf.Read(bs)
+	ins.readLength += n
+	return string(bs[:n]), err
+}
+
+func (ins *ByteArray) ReadStringUint32() (string, error) {
+	strLen, err := ins.ReadUint32()
+	if err != nil {
+		return "", err
+	}
+	bs := make([]byte, strLen)
+	n, err := ins.buf.Read(bs)
+	ins.readLength += n
+	return string(bs[:n]), err
 }

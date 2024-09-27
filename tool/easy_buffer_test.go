@@ -134,5 +134,35 @@ func TestByteArray(t *testing.T) {
 	vInt, _ := ba.ReadInt()
 	t.Logf("vInt=%d", vInt)
 
+	// stringUint8
+	err = ba.WriteStringUint8("免费贴膜哦")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
+	vStr8, _ := ba.ReadStringUint8()
+	t.Logf("vStr8=%s", vStr8)
+
+	// stringUint16
+	err = ba.WriteStringUint16("收费大宝剑")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
+	vStr16, _ := ba.ReadStringUint16()
+	t.Logf("vStr16=%s", vStr16)
+
+	// stringUint32
+	err = ba.WriteStringUint32("山姆会员店")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
+	vStr32, _ := ba.ReadStringUint32()
+	t.Logf("vStr32=%s", vStr32)
+
 	t.Logf("全部完成 累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 }
