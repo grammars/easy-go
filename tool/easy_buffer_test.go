@@ -10,6 +10,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vByte, _ := ba.ReadByte()
 	t.Logf("vByte=%d", vByte)
 
@@ -19,6 +20,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vUint8, _ := ba.ReadUint8()
 	t.Logf("vUint8=%d", vUint8)
 
@@ -28,6 +30,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vInt8, _ := ba.ReadInt8()
 	t.Logf("vInt8=%d", vInt8)
 
@@ -37,6 +40,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vUint16, _ := ba.ReadUint16()
 	t.Logf("vUint16=%d", vUint16)
 
@@ -46,6 +50,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vInt16, _ := ba.ReadInt16()
 	t.Logf("vInt16=%d", vInt16)
 
@@ -55,6 +60,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vUint32, _ := ba.ReadUint32()
 	t.Logf("vUint32=%d", vUint32)
 
@@ -64,6 +70,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vInt32, _ := ba.ReadInt32()
 	t.Logf("vInt32=%d", vInt32)
 
@@ -73,6 +80,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vUint64, _ := ba.ReadUint64()
 	t.Logf("vUint64=%d", vUint64)
 
@@ -82,6 +90,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vInt64, _ := ba.ReadInt64()
 	t.Logf("vInt64=%d", vInt64)
 
@@ -91,6 +100,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vFloat32, _ := ba.ReadFloat32()
 	t.Logf("float32=%f", vFloat32)
 
@@ -100,6 +110,7 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vFloat64, _ := ba.ReadFloat64()
 	t.Logf("vFloat64=%f", vFloat64)
 
@@ -109,7 +120,19 @@ func TestByteArray(t *testing.T) {
 		t.Error(err)
 		return
 	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vBool, _ := ba.ReadBool()
 	t.Logf("vBool=%v", vBool)
 
+	// int32
+	err = ba.WriteInt(-989899880)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
+	vInt, _ := ba.ReadInt()
+	t.Logf("vInt=%d", vInt)
+
+	t.Logf("全部完成 累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 }
