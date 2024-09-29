@@ -13,3 +13,7 @@ func TestIsBlank(t *testing.T) {
 		t.Error("纯空判定blank错误")
 	}
 }
+
+func TestBytesToHex(t *testing.T) {
+	t.Logf("16进制显示：%s", BytesToHex([]byte{1, 12, 10}))
+}
