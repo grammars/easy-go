@@ -1,7 +1,7 @@
 package best
 
 func Echo() {
-	println("最佳实践 V 2024-07-15 18:02")
+	println("最佳实践 V 2024-10-09 11:14")
 }
 
 func SuccessResult[D any](message string, data D) *EcResult[D] {
@@ -29,6 +29,12 @@ func (er *EcResult[D]) Success() *EcResult[D] {
 
 func (er *EcResult[D]) Fail() *EcResult[D] {
 	er.Code = 1
+	return er
+}
+
+func (er *EcResult[D]) FailError(err error) *EcResult[D] {
+	er.Code = 1
+	er.Message = err.Error()
 	return er
 }
 
