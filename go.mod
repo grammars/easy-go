@@ -1,4 +1,4 @@
-module grammars/easy-go
+module github.com/grammars/easy-go
 
 go 1.22.3
 

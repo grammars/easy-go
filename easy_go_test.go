@@ -1,7 +1,7 @@
 package ego
 
 import (
-	"grammars/easy-go/best"
+	"github.com/grammars/easy-go/best"
 	"testing"
 )
 
