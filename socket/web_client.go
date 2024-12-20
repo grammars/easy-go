@@ -3,7 +3,7 @@ package socket
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
-	"github.com/grammars/easy-go/sugar"
+	"grammars/easy-go/sugar"
 	"log/slog"
 	"net/url"
 	"time"

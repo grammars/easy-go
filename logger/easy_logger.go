@@ -1,8 +1,8 @@
 package logger
 
 import (
-	"github.com/grammars/easy-go/file"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"grammars/easy-go/file"
 	"io"
 	"log/slog"
 	"os"

@@ -2,7 +2,7 @@ package file
 
 import (
 	"fmt"
-	"github.com/grammars/easy-go/sugar"
+	"grammars/easy-go/sugar"
 	"path/filepath"
 	"runtime"
 	"testing"

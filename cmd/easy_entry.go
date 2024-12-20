@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/grammars/easy-go/file"
-	"github.com/grammars/easy-go/socket"
+	"grammars/easy-go/file"
+	"grammars/easy-go/socket"
 	"path/filepath"
 	"time"
 	"unsafe"
