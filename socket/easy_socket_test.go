@@ -10,7 +10,7 @@ import (
 
 func TestRawServer(t *testing.T) {
 	t.Log("TestRawServer")
-	decoder := &LineBasedFrameDecoder[any]{}
+	decoder := &LineBasedFrameDecoder{}
 	srv := &RawServer[any]{Port: 6677, Monitor: CreateMonitorStart("测试", 5000), Decoder: decoder}
 	srv.Start()
 }

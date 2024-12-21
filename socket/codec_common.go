@@ -11,6 +11,6 @@ type CodecResult struct {
 	BodyBytes   []byte
 }
 
-type FrameDecoder[VD any] interface {
-	Decode(visitor *Visitor[VD], reader io.Reader) (CodecResult, error)
+type FrameDecoder interface {
+	Decode(visitor VisitorSupport, reader io.Reader) (CodecResult, error)
 }

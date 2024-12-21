@@ -16,7 +16,7 @@ type RawServer[VD any] struct {
 	Monitor           *Monitor
 	Handler           VisitorServerHandler[VD]
 	VisitorMap        *VisitorMap[VD]
-	Decoder           FrameDecoder[VD]
+	Decoder           FrameDecoder
 	FrameBrokenDumpMs time.Duration // 当数据帧损坏时，倾倒时间(ms) 小于等于0则采取断开策略
 }
 

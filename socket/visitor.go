@@ -20,12 +20,25 @@ type VisitorServer interface {
 	GetStartTime() time.Time
 }
 
+type VisitorSupport interface {
+	SetExt(value any)
+	GetExt() any
+}
+
 type Visitor[VD any] struct {
 	index uint64
 	Uid   uint64
 	Conn  VisitorConnection
 	Data  *VD
 	Ext   any
+}
+
+func (v Visitor[VD]) SetExt(value any) {
+	v.Ext = value
+}
+
+func (v Visitor[VD]) GetExt() any {
+	return v.Ext
 }
 
 type VisitorServerHandler[VD any] interface {
