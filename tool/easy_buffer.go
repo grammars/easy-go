@@ -18,6 +18,14 @@ func NewByteArray() *ByteArray {
 	return &ByteArray{buf: &bytes.Buffer{}, byteOrder: binary.BigEndian}
 }
 
+func NewByteArrayFromBytes(bs []byte) *ByteArray {
+	return &ByteArray{buf: bytes.NewBuffer(bs), byteOrder: binary.BigEndian}
+}
+
+func NewByteArrayFromBuf(buf *bytes.Buffer) *ByteArray {
+	return &ByteArray{buf: buf, byteOrder: binary.BigEndian}
+}
+
 func (ins *ByteArray) Order(byteOrder binary.ByteOrder) *ByteArray {
 	ins.byteOrder = byteOrder
 	return ins
