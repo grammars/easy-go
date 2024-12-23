@@ -17,3 +17,10 @@ func BytesToHex(data []byte) string {
 	}
 	return hexStr
 }
+
+func ReadPoint(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
+}
