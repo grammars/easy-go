@@ -66,3 +66,10 @@ func TestEndian(t *testing.T) {
 	}
 	t.Log("LittleEndian -> ", fmt.Sprintf("0x%x", buf.Bytes()))
 }
+
+func TestCodecCommon(t *testing.T) {
+	t.Log("TestCodecCommon")
+	cr := &CodecResult{HeaderBytes: []byte{1, 6, 3}, BodyBytes: []byte{17, 16, 15}}
+	cb := cr.Combine()
+	t.Log("cb", cb)
+}
