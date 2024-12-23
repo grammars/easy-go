@@ -257,6 +257,21 @@ func (ins *ByteArray) WriteStringUint8(str string) error {
 	return ins.__AfterWrite__(err, n)
 }
 
+func (ins *ByteArray) WriteStringInt8(pStr *string) error {
+	if pStr == nil {
+		return ins.WriteInt8(-1)
+	}
+	str := *pStr
+	bs := []byte(str)
+	strLen := len(bs)
+	if strLen > math.MaxInt8 {
+		return errors.New("string too long")
+	}
+	err := ins.WriteInt8(int8(strLen))
+	n, err := ins.buf.Write(bs)
+	return ins.__AfterWrite__(err, n)
+}
+
 func (ins *ByteArray) WriteStringUint16(str string) error {
 	bs := []byte(str)
 	strLen := len(bs)
@@ -264,6 +279,21 @@ func (ins *ByteArray) WriteStringUint16(str string) error {
 		return errors.New("string too long")
 	}
 	err := ins.WriteUint16(uint16(strLen))
+	n, err := ins.buf.Write(bs)
+	return ins.__AfterWrite__(err, n)
+}
+
+func (ins *ByteArray) WriteStringInt16(pStr *string) error {
+	if pStr == nil {
+		return ins.WriteInt16(-1)
+	}
+	str := *pStr
+	bs := []byte(str)
+	strLen := len(bs)
+	if strLen > math.MaxInt16 {
+		return errors.New("string too long")
+	}
+	err := ins.WriteInt16(int16(strLen))
 	n, err := ins.buf.Write(bs)
 	return ins.__AfterWrite__(err, n)
 }
@@ -279,6 +309,21 @@ func (ins *ByteArray) WriteStringUint32(str string) error {
 	return ins.__AfterWrite__(err, n)
 }
 
+func (ins *ByteArray) WriteStringInt32(pStr *string) error {
+	if pStr == nil {
+		return ins.WriteInt16(-1)
+	}
+	str := *pStr
+	bs := []byte(str)
+	strLen := len(bs)
+	if strLen > math.MaxInt32 {
+		return errors.New("string too long")
+	}
+	err := ins.WriteInt32(int32(strLen))
+	n, err := ins.buf.Write(bs)
+	return ins.__AfterWrite__(err, n)
+}
+
 func (ins *ByteArray) ReadStringUint8() (string, error) {
 	strLen, err := ins.ReadUint8()
 	if err != nil {
@@ -288,6 +333,24 @@ func (ins *ByteArray) ReadStringUint8() (string, error) {
 	n, err := ins.buf.Read(bs)
 	ins.readLength += n
 	return string(bs[:n]), err
+}
+
+func (ins *ByteArray) ReadStringInt8() (*string, error) {
+	strLen, err := ins.ReadInt8()
+	if err != nil {
+		return nil, err
+	}
+	if strLen < 0 {
+		return nil, nil
+	} else if strLen == 0 {
+		str := ""
+		return &str, nil
+	}
+	bs := make([]byte, strLen)
+	n, err := ins.buf.Read(bs)
+	ins.readLength += n
+	str := string(bs[:n])
+	return &str, err
 }
 
 func (ins *ByteArray) ReadStringUint16() (string, error) {
@@ -301,6 +364,24 @@ func (ins *ByteArray) ReadStringUint16() (string, error) {
 	return string(bs[:n]), err
 }
 
+func (ins *ByteArray) ReadStringInt16() (*string, error) {
+	strLen, err := ins.ReadInt16()
+	if err != nil {
+		return nil, err
+	}
+	if strLen < 0 {
+		return nil, nil
+	} else if strLen == 0 {
+		str := ""
+		return &str, nil
+	}
+	bs := make([]byte, strLen)
+	n, err := ins.buf.Read(bs)
+	ins.readLength += n
+	str := string(bs[:n])
+	return &str, err
+}
+
 func (ins *ByteArray) ReadStringUint32() (string, error) {
 	strLen, err := ins.ReadUint32()
 	if err != nil {
@@ -310,4 +391,22 @@ func (ins *ByteArray) ReadStringUint32() (string, error) {
 	n, err := ins.buf.Read(bs)
 	ins.readLength += n
 	return string(bs[:n]), err
+}
+
+func (ins *ByteArray) ReadStringInt32() (*string, error) {
+	strLen, err := ins.ReadInt32()
+	if err != nil {
+		return nil, err
+	}
+	if strLen < 0 {
+		return nil, nil
+	} else if strLen == 0 {
+		str := ""
+		return &str, nil
+	}
+	bs := make([]byte, strLen)
+	n, err := ins.buf.Read(bs)
+	ins.readLength += n
+	str := string(bs[:n])
+	return &str, err
 }

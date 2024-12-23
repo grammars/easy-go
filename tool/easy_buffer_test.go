@@ -1,6 +1,9 @@
 package tool
 
-import "testing"
+import (
+	"math/rand"
+	"testing"
+)
 
 func TestByteArray(t *testing.T) {
 	ba := NewByteArray()
@@ -143,6 +146,21 @@ func TestByteArray(t *testing.T) {
 	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 	vStr8, _ := ba.ReadStringUint8()
 	t.Logf("vStr8=%s", vStr8)
+
+	// stringInt8
+	if rand.Float32() < 0.5 {
+		s8 := "大雨吃小雨"
+		err = ba.WriteStringInt8(&s8)
+	} else {
+		err = ba.WriteStringInt8(nil)
+	}
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
+	pStr8, _ := ba.ReadStringInt8()
+	t.Logf("pStr8=%v", pStr8)
 
 	// stringUint16
 	err = ba.WriteStringUint16("收费大宝剑")
