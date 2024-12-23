@@ -24,3 +24,10 @@ func ReadPointer(p *string) string {
 	}
 	return *p
 }
+
+func ReadPointerErr(p *string, err error) string {
+	if p == nil || err != nil {
+		return ""
+	}
+	return *p
+}
