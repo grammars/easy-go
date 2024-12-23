@@ -56,6 +56,20 @@ func (ins *ByteArray) __AfterWrite__(err error, n int) error {
 	return err
 }
 
+func (ins *ByteArray) WriteBytes(value []byte) error {
+	n, e := ins.buf.Write(value)
+	return ins.__AfterWrite__(e, n)
+}
+
+func (ins *ByteArray) ReadBytes(n int) ([]byte, error) {
+	bs := make([]byte, n)
+	n, err := ins.buf.Read(bs)
+	if err == nil {
+		ins.readLength += n
+	}
+	return bs, err
+}
+
 func (ins *ByteArray) WriteByte(value byte) error {
 	return ins.__AfterWrite__(ins.buf.WriteByte(value), 1)
 }

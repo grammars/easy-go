@@ -164,5 +164,15 @@ func TestByteArray(t *testing.T) {
 	vStr32, _ := ba.ReadStringUint32()
 	t.Logf("vStr32=%s", vStr32)
 
+	// bytes
+	err = ba.WriteBytes([]byte{31, 32, 33})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
+	bs, _ := ba.ReadBytes(3)
+	t.Logf("bs=%v", bs)
+
 	t.Logf("全部完成 累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 }
