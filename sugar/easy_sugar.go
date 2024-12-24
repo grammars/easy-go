@@ -28,3 +28,17 @@ func ReturnIf[T any](boolExpression bool, trueReturnValue, falseReturnValue T) T
 		return falseReturnValue
 	}
 }
+
+func Max[T int | uint64 | int64 | int32 | uint32 | int16 | uint16 | int8 | uint8 | float32 | float64](a, b T) T {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func Min[T int | uint64 | int64 | int32 | uint32 | int16 | uint16 | int8 | uint8 | float32 | float64](a, b T) T {
+	if a < b {
+		return a
+	}
+	return b
+}
