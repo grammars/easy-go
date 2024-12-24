@@ -1,5 +1,5 @@
 package ego
 
 func Version() string {
-	return "0.0.75 (2024-12-23 15:59)"
+	return "0.0.76 (2024-12-24 10:57)"
 }
