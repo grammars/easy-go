@@ -11,9 +11,13 @@ type ReadWriteMap[K comparable, V any] struct {
 }
 
 func NewReadWriteMap[K comparable, V any]() *ReadWriteMap[K, V] {
-	sm := new(ReadWriteMap[K, V])
-	sm.m = make(map[K]V)
-	return sm
+	rwMap := new(ReadWriteMap[K, V])
+	rwMap.Init()
+	return rwMap
+}
+
+func (rwMap *ReadWriteMap[K, V]) Init() {
+	rwMap.m = make(map[K]V)
 }
 
 func (rwMap *ReadWriteMap[K, V]) Put(k K, v V) {
