@@ -1,6 +1,7 @@
 package file
 
 import (
+	"bufio"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -70,4 +71,32 @@ func Md5Hex(filePath string) (string, error) {
 	md5Bytes := hash.Sum(nil)
 	// 将字节切片转换为十六进制字符串
 	return hex.EncodeToString(md5Bytes), nil
+}
+
+func ReadString(filePath string) (string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file) // 确保文件最终被关闭
+
+	// 创建一个新的bufio.Reader
+	reader := bufio.NewReader(file)
+
+	// 读取文件内容到字符串
+	var content string
+	for {
+		line, err := reader.ReadString('\n') // 按行读取
+		content += line
+		if err != nil {
+			break // 读取到文件末尾或发生错误
+		}
+	}
+
+	return content, nil
 }
