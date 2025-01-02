@@ -74,7 +74,7 @@ func CheckCert(certStr string, secret string) int {
 		return CheckError
 	}
 	expiredTs := tsMod - TsOffset
-	fmt.Printf("过期的时间戳=%d", expiredTs)
+	//fmt.Printf("过期的时间戳=%d", expiredTs)
 	nowTs := time.Now().Unix()
 	if nowTs > expiredTs {
 		return CheckExpired
