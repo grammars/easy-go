@@ -23,7 +23,7 @@ func TestCertMake(t *testing.T) {
 		return
 	}
 
-	certContent := MakeCert(authMac, expiredTime, DEMO_SECRET)
+	certContent := MakeCert(authMac, expiredTime, DEMO_SECRET, "好家伙", "真厉害")
 	certFileName := "../build/auth.cert"
 	// 使用os.Create创建文件
 	certFile, err := os.Create(certFileName)

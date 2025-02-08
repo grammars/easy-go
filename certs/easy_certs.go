@@ -33,20 +33,34 @@ func GetMacAddressList() ([]string, error) {
 	return macAddrs, nil
 }
 
-func calcMd5(mac string, expiredTs int64, secret string) string {
+func calcMd5(mac string, expiredTs int64, secret string, author string) string {
 	macStd := strings.TrimSpace(strings.ReplaceAll(strings.ToLower(mac), "-", ":"))
-	src := fmt.Sprintf("%s@%dS%s", macStd, expiredTs, secret)
+	authorStd := authorFix16(author)
+	src := fmt.Sprintf("%s@%dS%sA%s", macStd, expiredTs, secret, authorStd)
 	hash := md5.New()
 	hash.Write([]byte(src))
 	hashBytes := hash.Sum(nil)
 	return hex.EncodeToString(hashBytes)
 }
 
-func MakeCert(mac string, expiredTime time.Time, secret string) string {
+func MakeCert(mac string, expiredTime time.Time, secret string, author string, tailInfo string) string {
 	ts := expiredTime.Unix()
 	showTs := TsOffset + ts
-	md5Str := calcMd5(mac, ts, secret)
-	return fmt.Sprintf("%d%d%d%sef%d01%d2c%d5peg5rOV56C06Kej", random9int(), random9int(), showTs, md5Str, random9int(), random9int(), random9int())
+	md5Str := calcMd5(mac, ts, secret, author)
+	return fmt.Sprintf("%d%d%d%sef%d00%s01%d2c%d5peg%s5rOV56C06Kej", random9int(), random9int(), showTs, md5Str,
+		random9int(), authorFix16(author), random9int(), random9int(), tailInfo)
+}
+
+func authorFix16(s string) string {
+	s += "3DESandRC4RSAorEcc"
+	fixLen := 16
+	// 处理长度超过16的情况
+	if len(s) >= fixLen {
+		return s[:fixLen]
+	}
+
+	// 处理长度不足16的情况
+	return s + strings.Repeat("x", fixLen-len(s))
 }
 
 func random9int() int {
@@ -65,7 +79,11 @@ const (
 )
 
 func CheckCert(certStr string, secret string) int {
-	if certStr == "" || len(certStr) < 62 {
+	return CheckCertWithMac(certStr, secret, "")
+}
+
+func CheckCertWithMac(certStr string, secret string, macAssign string) int {
+	if certStr == "" || len(certStr) < 91 {
 		return CheckError
 	}
 	tsStrPart := certStr[18:30]
@@ -74,19 +92,29 @@ func CheckCert(certStr string, secret string) int {
 		return CheckError
 	}
 	expiredTs := tsMod - TsOffset
-	//fmt.Printf("过期的时间戳=%d", expiredTs)
+	fmt.Printf("过期的时间戳=%d", expiredTs)
 	nowTs := time.Now().Unix()
 	if nowTs > expiredTs {
 		return CheckExpired
 	}
 	md5Part := certStr[30:62]
+	fmt.Printf("从证书读取到MD5部分是%s\n", md5Part)
+	author := certStr[75:91]
+	fmt.Printf("从证书读取到授权者是%s\n", author)
+
+	if macAssign != "" {
+		md5Right := calcMd5(macAssign, expiredTs, secret, author)
+		if md5Right == md5Part {
+			return CheckOk
+		}
+	}
 
 	macList, err := GetMacAddressList()
 	if err != nil {
 		return CheckError
 	} else {
 		for _, mac := range macList {
-			md5Right := calcMd5(mac, expiredTs, secret)
+			md5Right := calcMd5(mac, expiredTs, secret, author)
 			if md5Right == md5Part {
 				return CheckOk
 			}
@@ -94,4 +122,15 @@ func CheckCert(certStr string, secret string) int {
 	}
 
 	return CheckError
+}
+
+func DescribeCheckResult(r int) string {
+	if r == CheckOk {
+		return "正确有效"
+	} else if r == CheckExpired {
+		return "证书已过期"
+	} else if r == CheckError {
+		return "检查失败"
+	}
+	return "unknown error"
 }
