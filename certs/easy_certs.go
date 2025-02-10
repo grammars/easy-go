@@ -130,6 +130,7 @@ func CheckCertWithMac(certStr string, secret string, macAssign string) (int, Cer
 	if macAssign != "" {
 		md5Right := calcMd5(macAssign, expiredTs, secret, author)
 		if md5Right == md5Part {
+			reader.Message = "认证成功(指派Mac模式)"
 			reader.MatchMac = macAssign
 			return CheckOk, reader
 		}
@@ -143,6 +144,7 @@ func CheckCertWithMac(certStr string, secret string, macAssign string) (int, Cer
 		for _, mac := range macList {
 			md5Right := calcMd5(mac, expiredTs, secret, author)
 			if md5Right == md5Part {
+				reader.Message = "认证成功"
 				reader.MatchMac = mac
 				return CheckOk, reader
 			}
