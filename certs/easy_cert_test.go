@@ -54,7 +54,7 @@ func TestCertCheck(t *testing.T) {
 		slog.Error("Error reading file", "err", err.Error())
 		return
 	}
-	cr := CheckCert(txt, DEMO_SECRET)
+	cr, reader := CheckCert(txt, DEMO_SECRET)
 	if cr == CheckOk {
 		fmt.Println("证书验证成功")
 	} else if cr == CheckExpired {
@@ -64,4 +64,5 @@ func TestCertCheck(t *testing.T) {
 	} else {
 		fmt.Println("证书验证失败")
 	}
+	reader.Print()
 }

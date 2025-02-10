@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"net"
 	"strconv"
@@ -78,50 +79,78 @@ const (
 	CheckError
 )
 
-func CheckCert(certStr string, secret string) int {
+type CertReader struct {
+	ExpiredTs     int64
+	ExpiredTsText string
+	NowTs         int64
+	NowTsText     string
+	Author        string
+	MatchMac      string
+	Message       string
+}
+
+func (r *CertReader) Print() {
+	slog.Info("证书信息读取", "Message", r.Message, "Author", r.Author, "匹配的mac地址", r.MatchMac,
+		"NowTs", r.NowTs, "Now", r.NowTsText, "ExpiredTs", r.ExpiredTs, "Expired", r.ExpiredTsText)
+}
+
+func CheckCert(certStr string, secret string) (int, CertReader) {
 	return CheckCertWithMac(certStr, secret, "")
 }
 
-func CheckCertWithMac(certStr string, secret string, macAssign string) int {
+func CheckCertWithMac(certStr string, secret string, macAssign string) (int, CertReader) {
+	reader := CertReader{}
 	if certStr == "" || len(certStr) < 91 {
-		return CheckError
+		reader.Message = "证书内容长度异常"
+		return CheckError, reader
 	}
 	tsStrPart := certStr[18:30]
 	tsMod, err := strconv.ParseInt(tsStrPart, 10, 64)
 	if err != nil {
-		return CheckError
+		reader.Message = "证书tsMod解析异常:" + err.Error()
+		return CheckError, reader
 	}
 	expiredTs := tsMod - TsOffset
 	fmt.Printf("过期的时间戳=%d", expiredTs)
 	nowTs := time.Now().Unix()
+	reader.ExpiredTs = expiredTs
+	reader.NowTs = nowTs
+	reader.ExpiredTsText = time.UnixMilli(expiredTs * 1000).Format("2006-01-02 15:04:05")
+	reader.NowTsText = time.UnixMilli(nowTs * 1000).Format("2006-01-02 15:04:05")
 	if nowTs > expiredTs {
-		return CheckExpired
+		reader.Message = "证书已过期"
+		return CheckExpired, reader
 	}
 	md5Part := certStr[30:62]
 	fmt.Printf("从证书读取到MD5部分是%s\n", md5Part)
 	author := certStr[75:91]
 	fmt.Printf("从证书读取到授权者是%s\n", author)
+	reader.Author = author
 
 	if macAssign != "" {
 		md5Right := calcMd5(macAssign, expiredTs, secret, author)
 		if md5Right == md5Part {
-			return CheckOk
+			reader.MatchMac = macAssign
+			return CheckOk, reader
 		}
 	}
 
 	macList, err := GetMacAddressList()
 	if err != nil {
-		return CheckError
+		reader.Message = "获取Mac地址失败:" + err.Error()
+		return CheckError, reader
 	} else {
 		for _, mac := range macList {
 			md5Right := calcMd5(mac, expiredTs, secret, author)
 			if md5Right == md5Part {
-				return CheckOk
+				reader.MatchMac = mac
+				return CheckOk, reader
 			}
 		}
 	}
 
-	return CheckError
+	reader.Message = "校验未通过"
+	return CheckError, reader
 }
 
 func DescribeCheckResult(r int) string {
