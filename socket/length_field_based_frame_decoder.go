@@ -1,6 +1,7 @@
 package socket
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -12,11 +13,19 @@ type LengthFieldBasedFrameDecoder struct {
 	MaxFrameLength    int
 	LengthFieldOffset int
 	LengthFieldLength int
-	LengthAdjustment  int
+	LengthAdjustment  int // 未严格验证
 	//InitialBytesToStrip int 不需要该字段，因为此处设计将以length为中心 切割成 2部分
 }
 
 func (decoder *LengthFieldBasedFrameDecoder) Decode(visitor VisitorSupport, reader io.Reader) (CodecResult, error) {
+	return decoder.Read(reader)
+}
+
+func (decoder *LengthFieldBasedFrameDecoder) ReadBytes(dataBytes []byte) (CodecResult, error) {
+	return decoder.Read(bytes.NewBuffer(dataBytes))
+}
+
+func (decoder *LengthFieldBasedFrameDecoder) Read(reader io.Reader) (CodecResult, error) {
 	if LogLevel <= 0 {
 		slog.Info("LengthFieldBasedFrameDecoder准备解码")
 	}
@@ -35,13 +44,23 @@ func (decoder *LengthFieldBasedFrameDecoder) Decode(visitor VisitorSupport, read
 	if _, err := io.ReadFull(reader, lengthBuffer); err != nil {
 		return result, err
 	}
+	var bl int
+	if decoder.LengthFieldLength == 1 {
+		bl = int(lengthBuffer[0])
+	} else if decoder.LengthFieldLength == 2 {
+		bl = int(decoder.ByteOrder.Uint16(lengthBuffer))
+	} else if decoder.LengthFieldLength == 4 {
+		bl = int(decoder.ByteOrder.Uint32(lengthBuffer))
+	} else {
+		return result, fmt.Errorf("不支持的LengthFieldLength=%d", decoder.LengthFieldLength)
+	}
 
 	if LogLevel <= 0 {
 		slog.Info("读取到lengthBuffer")
 	}
 
 	// length 之后的 内容长度
-	bodyLength := int(decoder.ByteOrder.Uint32(lengthBuffer)) + decoder.LengthAdjustment
+	bodyLength := bl + decoder.LengthAdjustment
 
 	if LogLevel <= 0 {
 		slog.Info("读取到bodyLength", "bodyLength", bodyLength)
