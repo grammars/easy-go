@@ -83,6 +83,13 @@ func (vm *VisitorMap[VD]) Get(visitorUid uint64) *Visitor[VD] {
 	return nil
 }
 
+// Range 遍历所有的 Visitor
+func (vm *VisitorMap[VD]) Range(f func(uid uint64, visitor *Visitor[VD]) bool) {
+	vm.holder.Range(func(k, v any) bool {
+		return f(k.(uint64), v.(*Visitor[VD]))
+	})
+}
+
 func (vm *VisitorMap[VD]) Print() {
 	vm.holder.Range(func(k, v any) bool {
 		uid := k.(uint64)
