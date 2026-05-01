@@ -4,71 +4,12 @@ __pycache__/
 *.pyo
 *.pyd
 
-# GoLand IDE
-.idea/
-*.iml
-*.iws
-*.ipr
-*.iws.idea
-*.iml.idea
-
 # GoLand specific files
 *.DS_Store
 *.log
 *.pid
 *.seed
 *.pid.lock
-
-# GoLand plugins
-plugins/
-
-# GoLand caches and indexes
-!/.gitignore
-.idea/caches/
-.idea/dataSources/
-.idea/dataSources.ids
-.idea/dataSources.xml
-.idea/dataSources.local.xml
-.idea/libraries/
-.idea/modules.xml
-
-# GoLand built-in tasks and configurations
-.idea/inspectionProfiles/
-
-# GoLand workspace settings
-.idea/workspace.xml
-
-# GoLand task definitions
-.idea/tasks.xml
-
-# GoLand code style settings
-.idea/codeStyleSettings.xml
-
-# GoLand copyright settings
-.idea/copyright/
-.idea/copyright.xml
-
-# GoLand JSLinter settings
-.idea/jsLinter/
-.idea/jscs.json
-.idea/jscs配对.json
-.idea/eslintConfig/
-
-# GoLand files for a specific run configuration
-.idea/runConfigurations/
-
-# GoLand coverage task results
-*.coverage
-
-# GoLand crash logs
-hs_err_pid*
-
-# GoLand profiler
-*.cpu
-*.Heap
-
-# GoLand profiler heap dumps
-*.hprof
 
 # Gradle cache
 .gradle/
@@ -80,11 +21,6 @@ build/
 ._*
 .Spotlight-V100
 .Trashes
-
-# go files
-*.go
-!*_test.go
-!vendor/**/*.go
 
 # Compiled binary files
 *.exe
