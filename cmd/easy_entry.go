@@ -3,11 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/grammars/easy-go/file"
-	"github.com/grammars/easy-go/socket"
 	"path/filepath"
 	"time"
 	"unsafe"
+
+	"github.com/grammars/easy-go/file"
+	"github.com/grammars/easy-go/socket"
 )
 
 func main() {
@@ -31,6 +32,9 @@ func main() {
 		break
 	case "swc":
 		RunSocketWebClient(*host, *port, *tls, *nc)
+		break
+	case "lp":
+		LearnPanic()
 		break
 	default:
 		RunDefault(*runType, *host, *port, *tls, *nc)
