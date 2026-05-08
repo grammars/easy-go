@@ -26,6 +26,12 @@ func NewByteArrayFromBuf(buf *bytes.Buffer) *ByteArray {
 	return &ByteArray{buf: buf, byteOrder: binary.BigEndian}
 }
 
+func (ins *ByteArray) Reset() {
+	ins.buf.Reset()
+	ins.length = 0
+	ins.readLength = 0
+}
+
 func (ins *ByteArray) Order(byteOrder binary.ByteOrder) *ByteArray {
 	ins.byteOrder = byteOrder
 	return ins

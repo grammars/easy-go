@@ -194,3 +194,41 @@ func TestByteArray(t *testing.T) {
 
 	t.Logf("全部完成 累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
 }
+
+func TestByteArray_Reset(t *testing.T) {
+	ba := NewByteArray()
+
+	_ = ba.WriteUint32(123456)
+	_ = ba.WriteStringUint8("hello")
+	_ = ba.WriteInt64(-9999)
+
+	vUint32, _ := ba.ReadUint32()
+
+	t.Logf("Reset前 累计写入=%d字节 剩余可读=%d字节 vUint32=%d", ba.Length(), ba.Available(), vUint32)
+	if ba.Length() == 0 {
+		t.Error("Reset前 Length不应为0")
+		return
+	}
+	if ba.Available() == 0 {
+		t.Error("Reset前 Available不应为0")
+		return
+	}
+
+	ba.Reset()
+
+	t.Logf("Reset后 累计写入=%d字节 剩余可读=%d字节", ba.Length(), ba.Available())
+	if ba.Length() != 0 {
+		t.Errorf("Reset后 Length应为0 实际=%d", ba.Length())
+	}
+	if ba.Available() != 0 {
+		t.Errorf("Reset后 Available应为0 实际=%d", ba.Available())
+	}
+	if len(ba.Bytes()) != 0 {
+		t.Errorf("Reset后 Bytes应为空 实际=%v", ba.Bytes())
+	}
+	vUint32, _ = ba.ReadUint32()
+	t.Logf("Reset后 vUint32=%d", vUint32)
+	if vUint32 != 0 {
+		t.Errorf("Reset后 vUint32应为0 实际=%d", vUint32)
+	}
+}
